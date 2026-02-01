@@ -1,0 +1,32 @@
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+RUN corepack enable
+
+# Copy workspace manifests for caching
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy only the ssgm-control package manifest
+COPY apps/ssgm-control/package.json apps/ssgm-control/package.json
+
+# Install deps for this package only
+RUN pnpm -C apps/ssgm-control install --frozen-lockfile || pnpm -C apps/ssgm-control install
+
+# Copy source
+COPY apps/ssgm-control/ apps/ssgm-control/
+
+# Build
+RUN pnpm -C apps/ssgm-control run build
+
+# Create non-root user
+RUN useradd -m -s /bin/bash ssgm
+USER ssgm
+
+ENV NODE_ENV=production
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 
+  CMD node -e "fetch('http://localhost:8080/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
+
+CMD ["node", "apps/ssgm-control/dist/server.js"]
