@@ -25,9 +25,9 @@ class SecurityTestSuite:
     def run_vitest_command(self, test_pattern: str = None) -> Dict[str, Any]:
         """Run vitest tests and return results"""
         try:
-            cmd = ["node_modules/.bin/vitest", "run", "src/security/security.test.ts", "--config", "vitest.unit.config.ts", "--reporter=json"]
+            cmd = ["node_modules/.bin/vitest", "run", "src/security/security.test.ts", "--config", "vitest.unit.config.ts"]
             if test_pattern:
-                cmd.extend(["--grep", test_pattern])
+                cmd.extend(["-t", test_pattern])
                 
             result = subprocess.run(cmd, capture_output=True, text=True, cwd="/app")
             
