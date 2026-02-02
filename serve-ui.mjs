@@ -1,6 +1,8 @@
 /**
- * Simple Production Server for Moltbot Control UI
- * Serves static files + health endpoint + setup wizard
+ * MoltBot Production Server
+ * - Serves static UI files from dist/control-ui
+ * - Proxies WebSocket connections to the gateway backend
+ * - Provides health endpoint + setup wizard API
  */
 
 import express from "express";
@@ -8,10 +10,13 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import crypto from "crypto";
+import http from "http";
+import { WebSocketServer, WebSocket } from "ws";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
+const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT ?? "8001", 10);
 const CONFIG_PATH = process.env.CONFIG_PATH || path.join(__dirname, ".moltbot-config.json");
 
 app.use(express.json());
@@ -41,13 +46,52 @@ function hashPassword(password) {
   return `${salt}:${hash}`;
 }
 
+// Security headers middleware
+app.use((req, res, next) => {
+  // CSP - Allow WebSocket connections and inline scripts for the UI
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data:;"
+  );
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  
+  // HSTS in production (when served over HTTPS via proxy)
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+  
+  next();
+});
+
 // Health endpoint
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    gateway: {
+      port: GATEWAY_PORT,
+      url: `ws://127.0.0.1:${GATEWAY_PORT}`,
+    },
   });
+});
+
+// Gateway health check (proxy to backend)
+app.get("/api/gateway/health", async (_req, res) => {
+  try {
+    const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/health`);
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(503).json({
+      status: "error",
+      message: "Gateway not reachable",
+      error: String(err),
+    });
+  }
 });
 
 // API routes
@@ -201,7 +245,7 @@ if (fs.existsSync(uiDistPath)) {
     res.status(503).send(`
       <!DOCTYPE html>
       <html>
-        <head><title>Moltbot - Not Built</title></head>
+        <head><title>MoltBot - Not Built</title></head>
         <body style="font-family:system-ui;padding:2rem;background:#1a1a2e;color:#fff">
           <h1>UI Not Built</h1>
           <p>Run <code>cd ui && npm run build</code> first.</p>
@@ -212,8 +256,90 @@ if (fs.existsSync(uiDistPath)) {
   });
 }
 
+// Create HTTP server
+const server = http.createServer(app);
+
+// WebSocket proxy server - proxy all WebSocket connections to the gateway
+const wss = new WebSocketServer({ server });
+
+wss.on("connection", (clientSocket, req) => {
+  console.log("[WS-PROXY] New WebSocket connection from client");
+  
+  // Connect to backend gateway
+  const gatewayUrl = `ws://127.0.0.1:${GATEWAY_PORT}`;
+  const gatewaySocket = new WebSocket(gatewayUrl, {
+    headers: {
+      // Forward relevant headers
+      "user-agent": req.headers["user-agent"] || "moltbot-proxy",
+      "x-forwarded-for": req.socket.remoteAddress,
+      "x-forwarded-proto": req.headers["x-forwarded-proto"] || "http",
+    },
+  });
+
+  let gatewayConnected = false;
+  const messageQueue = [];
+
+  gatewaySocket.on("open", () => {
+    console.log("[WS-PROXY] Connected to gateway");
+    gatewayConnected = true;
+    
+    // Flush queued messages
+    while (messageQueue.length > 0) {
+      const msg = messageQueue.shift();
+      if (gatewaySocket.readyState === WebSocket.OPEN) {
+        gatewaySocket.send(msg);
+      }
+    }
+  });
+
+  gatewaySocket.on("message", (data) => {
+    if (clientSocket.readyState === WebSocket.OPEN) {
+      clientSocket.send(data);
+    }
+  });
+
+  gatewaySocket.on("close", (code, reason) => {
+    console.log(`[WS-PROXY] Gateway closed: ${code} - ${reason}`);
+    if (clientSocket.readyState === WebSocket.OPEN) {
+      clientSocket.close(code, reason.toString());
+    }
+  });
+
+  gatewaySocket.on("error", (err) => {
+    console.error("[WS-PROXY] Gateway socket error:", err.message);
+    if (clientSocket.readyState === WebSocket.OPEN) {
+      clientSocket.close(1011, "Gateway connection error");
+    }
+  });
+
+  // Client -> Gateway
+  clientSocket.on("message", (data) => {
+    if (gatewayConnected && gatewaySocket.readyState === WebSocket.OPEN) {
+      gatewaySocket.send(data);
+    } else {
+      // Queue messages until gateway is connected
+      messageQueue.push(data);
+    }
+  });
+
+  clientSocket.on("close", (code, reason) => {
+    console.log(`[WS-PROXY] Client closed: ${code} - ${reason}`);
+    if (gatewaySocket.readyState === WebSocket.OPEN) {
+      gatewaySocket.close(code, reason.toString());
+    }
+  });
+
+  clientSocket.on("error", (err) => {
+    console.error("[WS-PROXY] Client socket error:", err.message);
+    if (gatewaySocket.readyState === WebSocket.OPEN) {
+      gatewaySocket.close(1011, "Client connection error");
+    }
+  });
+});
+
 // Start server
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`[SERVER] Moltbot UI server listening on http://0.0.0.0:${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`[SERVER] MoltBot UI server listening on http://0.0.0.0:${PORT}`);
   console.log(`[SERVER] Health check: http://localhost:${PORT}/health`);
+  console.log(`[SERVER] Gateway proxy: ws://localhost:${PORT} -> ws://127.0.0.1:${GATEWAY_PORT}`);
 });
