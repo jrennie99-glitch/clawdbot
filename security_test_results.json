@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-02-02T11:20:56.091273",
+  "summary": {
+    "tests_run": 14,
+    "tests_passed": 1,
+    "tests_failed": 13,
+    "success_rate": 7.142857142857142
+  },
+  "failed_tests": [
+    "Content sanitizer prompt injection detection",
+    "Content sanitizer HTML/JS stripping",
+    "Secret redaction",
+    "Trust zones",
+    "Memory provenance tracking",
+    "Policy engine SSRF protection",
+    "Policy engine secret exfiltration protection",
+    "Policy engine confirmation requirements",
+    "Kill switch functionality",
+    "Lockdown mode",
+    "LLM router",
+    "Claude optional functionality",
+    "Cost controls"
+  ],
+  "detailed_results": {
+    "content_sanitizer_injection": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "content_sanitizer_html": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "secret_redaction": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "trust_zones": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "memory_provenance": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "policy_ssrf": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "policy_secret_exfiltration": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "policy_confirmations": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "kill_switch": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "lockdown_mode": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "llm_router": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "claude_optional": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "cost_controls": {
+      "status": "FAILED",
+      "error": "file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404\n          throw new CACError(`Unknown option \\`${name.length > 1 ? `--${name}` : `-${name}`}\\``);\n                ^\n\nCACError: Unknown option `--grep`\n    at Command.checkUnknownOptions (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:404:17)\n    at CAC.runMatchedCommand (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:604:13)\n    at CAC.parse (file:///app/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:545:12)\n    at file:///app/node_modules/vitest/dist/cli.js:28:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v20.20.0\n"
+    },
+    "comprehensive_suite": {
+      "status": "PASSED",
+      "details": "All 43 security tests passed successfully"
+    }
+  }
+}
