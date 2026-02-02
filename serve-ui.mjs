@@ -106,83 +106,25 @@ app.get("/api/status", (_req, res) => {
   });
 });
 
-// Setup status
+// Setup status - LOCKED IN PRODUCTION
 app.get("/api/setup/status", (_req, res) => {
   const config = loadConfig();
+  // In production mode, setup is always locked
   res.json({
-    configured: !!config?.setupLocked,
-    locked: config?.setupLocked ?? false,
+    configured: true,
+    locked: true,
+    production: true
   });
 });
 
-// Setup wizard - validate token
-app.post("/api/setup/validate-token", (req, res) => {
-  const config = loadConfig();
-  if (config?.setupLocked) {
-    return res.status(403).json({ error: "Setup is locked" });
-  }
-
-  const { token } = req.body;
-  const envToken = process.env.SETUP_TOKEN;
-
-  if (!envToken) {
-    return res.status(400).json({ error: "No setup token configured. Run 'npm run setup' first." });
-  }
-
-  if (token !== envToken) {
-    return res.status(401).json({ error: "Invalid setup token" });
-  }
-
-  res.json({ valid: true });
+// Setup wizard - DISABLED IN PRODUCTION
+app.post("/api/setup/validate-token", (_req, res) => {
+  return res.status(403).json({ error: "Setup disabled in production mode" });
 });
 
-// Setup wizard - apply config
-app.post("/api/setup/apply", (req, res) => {
-  const config = loadConfig();
-  if (config?.setupLocked) {
-    return res.status(403).json({ error: "Setup is locked" });
-  }
-
-  // Validate token
-  const { token, ...setupData } = req.body;
-  const envToken = process.env.SETUP_TOKEN;
-  if (!envToken || token !== envToken) {
-    return res.status(401).json({ error: "Invalid setup token" });
-  }
-
-  // Validate required fields
-  if (!setupData.adminEmail?.includes("@")) {
-    return res.status(400).json({ error: "Valid admin email required" });
-  }
-  if (!setupData.adminPassword || setupData.adminPassword.length < 8) {
-    return res.status(400).json({ error: "Password must be at least 8 characters" });
-  }
-
-  try {
-    const newConfig = {
-      adminEmail: setupData.adminEmail,
-      adminPasswordHash: hashPassword(setupData.adminPassword),
-      hitlMode: setupData.hitlMode || "selective",
-      lockdownMode: setupData.lockdownMode ?? true,
-      llmProvider: setupData.llmProvider || "auto",
-      moonshotApiKey: setupData.moonshotApiKey || undefined,
-      openrouterApiKey: setupData.openrouterApiKey || undefined,
-      localBaseUrl: setupData.localBaseUrl || "http://localhost:11434/v1",
-      allowlistDomains: setupData.allowlistDomains || ["api.moonshot.cn", "openrouter.ai"],
-      budgetPerRunUsd: setupData.budgetPerRunUsd ?? 1,
-      budgetDailyUsd: setupData.budgetDailyUsd ?? 10,
-      budgetMonthlyUsd: setupData.budgetMonthlyUsd ?? 100,
-      setupLocked: true,
-      createdAt: new Date().toISOString(),
-    };
-
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(newConfig, null, 2));
-    console.log("[SETUP] Configuration applied and locked");
-
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: String(err) });
-  }
+// Setup wizard - DISABLED IN PRODUCTION
+app.post("/api/setup/apply", (_req, res) => {
+  return res.status(403).json({ error: "Setup disabled in production mode" });
 });
 
 // Get safe config (no secrets)
