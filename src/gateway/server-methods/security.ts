@@ -96,7 +96,7 @@ export const securityHandlers: GatewayRequestHandlers = {
         providers,
       });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -124,7 +124,7 @@ export const securityHandlers: GatewayRequestHandlers = {
         respond(true, { enabled: false });
       }
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -142,7 +142,7 @@ export const securityHandlers: GatewayRequestHandlers = {
       }
       respond(true, { enabled: isLockdownModeEnabled() });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -157,7 +157,7 @@ export const securityHandlers: GatewayRequestHandlers = {
         total: policyDecisions.length,
       });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -169,7 +169,7 @@ export const securityHandlers: GatewayRequestHandlers = {
       const pending = getPendingApprovals();
       respond(true, { pending });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -182,7 +182,7 @@ export const securityHandlers: GatewayRequestHandlers = {
       approveToolExecution(previewId, "dashboard");
       respond(true, { approved: true });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -196,7 +196,7 @@ export const securityHandlers: GatewayRequestHandlers = {
       denyToolExecution(previewId, reason);
       respond(true, { denied: true });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -214,7 +214,7 @@ export const securityHandlers: GatewayRequestHandlers = {
         total: log.length,
       });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -236,7 +236,7 @@ export const securityHandlers: GatewayRequestHandlers = {
         total: quarantineEntries.length,
       });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -249,7 +249,7 @@ export const securityHandlers: GatewayRequestHandlers = {
       quarantineEntries.length = 0;
       respond(true, { deleted: true });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 
@@ -277,7 +277,7 @@ export const securityHandlers: GatewayRequestHandlers = {
         providers: providers.map((p) => ({ id: p, status: "available" })),
       });
     } catch (err) {
-      respond(false, undefined, { code: -32000, message: String(err) });
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
 };
