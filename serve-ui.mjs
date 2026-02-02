@@ -252,10 +252,7 @@ wss.on("connection", (clientSocket, req) => {
   const messageQueue = [];
 
   gatewaySocket.on("open", () => {
-    console.log("[WS-PROXY] Connected to gateway");
     gatewayConnected = true;
-    
-    // Flush queued messages
     while (messageQueue.length > 0) {
       const msg = messageQueue.shift();
       if (gatewaySocket.readyState === WebSocket.OPEN) {
