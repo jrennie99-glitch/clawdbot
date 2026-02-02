@@ -23,6 +23,23 @@ import {
 } from "../../security/integration/tool-interceptor.js";
 import { getUsage, getBudget, checkBudgetStatus } from "../../security/cost-controls.js";
 import { getAvailableProviders } from "../../security/llm-router.js";
+import { getHITLMode, setHITLMode, getHITLStatus, type HITLMode } from "../../security/hitl.js";
+import {
+  logAuditEntry,
+  getRunAuditTrail,
+  getRunSummary,
+  listRuns,
+  getAuditLog,
+  exportAuditTrail,
+  getAuditStats,
+} from "../../security/audit-trail.js";
+import {
+  checkBudgetGuardrails,
+  getBudgetDashboard,
+  getBudgetViolations,
+  setUserBudgetConfig,
+  setOrgBudgetConfig,
+} from "../../security/budget-guardrails.js";
 
 // Track policy decisions in memory (recent 100)
 const policyDecisions: Array<{
