@@ -71,3 +71,7 @@ USER.md
 
 # local tooling
 .serena/
+-e 
+# Environment files
+*.env
+*.env.*
