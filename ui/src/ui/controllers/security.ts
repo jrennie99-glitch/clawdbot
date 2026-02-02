@@ -58,6 +58,63 @@ export interface CostStatus {
   providers: Array<{ id: string; status: string }>;
 }
 
+export interface HITLStatus {
+  mode: "off" | "selective" | "full";
+  description: string;
+}
+
+export interface RunSummary {
+  runId: string;
+  userId?: string;
+  orgId?: string;
+  startedAt: string;
+  completedAt?: string;
+  status: string;
+  totalCostUsd: number;
+  totalTokens: number;
+  toolCalls: number;
+  llmCalls: number;
+  policyDenials: number;
+  riskLevel: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  runId: string;
+  timestamp: string;
+  eventType: string;
+  tool?: string;
+  action?: string;
+  policyDecision?: string;
+  riskLevel?: string;
+  llmModel?: string;
+  costUsd?: number;
+}
+
+export interface BudgetDashboard {
+  config: {
+    perRunLimitUsd: number;
+    dailyLimitUsd: number;
+    monthlyLimitUsd: number;
+  };
+  status: {
+    withinBudget: boolean;
+    warnings: string[];
+    currentTier: string;
+    usage: {
+      run: { used: number; limit: number; percent: number };
+      daily: { used: number; limit: number; percent: number };
+      monthly: { used: number; limit: number; percent: number };
+    };
+  };
+  violations: Array<{
+    timestamp: string;
+    period: string;
+    action: string;
+    reason: string;
+  }>;
+}
+
 export async function loadSecurityStatus(state: MoltbotApp): Promise<SecurityStatus | null> {
   if (!state.client) return null;
   try {
@@ -194,6 +251,87 @@ export async function loadCostStatus(state: MoltbotApp): Promise<CostStatus | nu
     return res as CostStatus;
   } catch (err) {
     console.error("Failed to load cost status:", err);
+    return null;
+  }
+}
+
+// HITL
+export async function loadHITLStatus(state: MoltbotApp): Promise<HITLStatus | null> {
+  if (!state.client) return null;
+  try {
+    const res = await state.client.request("security.hitl.status", {});
+    return res as HITLStatus;
+  } catch (err) {
+    console.error("Failed to load HITL status:", err);
+    return null;
+  }
+}
+
+export async function setHITLMode(
+  state: MoltbotApp,
+  mode: "off" | "selective" | "full",
+): Promise<boolean> {
+  if (!state.client) return false;
+  try {
+    await state.client.request("security.hitl.set", { mode });
+    return true;
+  } catch (err) {
+    console.error("Failed to set HITL mode:", err);
+    return false;
+  }
+}
+
+// Audit Trail
+export async function loadAuditRuns(
+  state: MoltbotApp,
+  params: { limit?: number; userId?: string; riskLevel?: string } = {},
+): Promise<{ runs: RunSummary[]; total: number }> {
+  if (!state.client) return { runs: [], total: 0 };
+  try {
+    const res = await state.client.request("security.audit.runs", params);
+    return res as { runs: RunSummary[]; total: number };
+  } catch (err) {
+    console.error("Failed to load audit runs:", err);
+    return { runs: [], total: 0 };
+  }
+}
+
+export async function loadAuditTrail(
+  state: MoltbotApp,
+  runId: string,
+): Promise<{ entries: AuditEntry[]; summary: RunSummary | null }> {
+  if (!state.client) return { entries: [], summary: null };
+  try {
+    const res = await state.client.request("security.audit.trail", { runId });
+    return res as { entries: AuditEntry[]; summary: RunSummary | null };
+  } catch (err) {
+    console.error("Failed to load audit trail:", err);
+    return { entries: [], summary: null };
+  }
+}
+
+export async function exportAuditJSON(state: MoltbotApp, runId: string): Promise<string | null> {
+  if (!state.client) return null;
+  try {
+    const res = (await state.client.request("security.audit.export", { runId })) as { json: string };
+    return res.json;
+  } catch (err) {
+    console.error("Failed to export audit:", err);
+    return null;
+  }
+}
+
+// Budget Guardrails
+export async function loadBudgetDashboard(
+  state: MoltbotApp,
+  params: { userId?: string; orgId?: string } = {},
+): Promise<BudgetDashboard | null> {
+  if (!state.client) return null;
+  try {
+    const res = await state.client.request("security.budget.dashboard", params);
+    return res as BudgetDashboard;
+  } catch (err) {
+    console.error("Failed to load budget dashboard:", err);
     return null;
   }
 }
