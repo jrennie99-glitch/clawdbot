@@ -69,14 +69,29 @@ app.get("/health", (_req, res) => {
     status: "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    gateway: {
-      port: GATEWAY_PORT,
-      url: `ws://127.0.0.1:${GATEWAY_PORT}`,
-    },
+    version: "1.0.0",
+    services: {
+      frontend: "running",
+      gateway: "proxied"
+    }
   });
 });
 
-// Gateway health check (proxy to backend)
+// Gateway health check endpoint
+app.get("/gateway/health", async (_req, res) => {
+  try {
+    const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/health`, { timeout: 5000 });
+    if (response.ok) {
+      res.json({ status: "ok", gateway: "connected" });
+    } else {
+      res.status(503).json({ status: "error", gateway: "unhealthy" });
+    }
+  } catch {
+    res.status(503).json({ status: "error", gateway: "unreachable" });
+  }
+});
+
+// Gateway health check (proxy to backend) - API version
 app.get("/api/gateway/health", async (_req, res) => {
   try {
     const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/health`);
