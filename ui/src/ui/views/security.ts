@@ -974,6 +974,175 @@ export function renderSecurityView(state: MoltbotApp): TemplateResult {
         border-radius: 4px;
         margin-bottom: 1rem;
       }
+      /* Tabs */
+      .security-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--color-border, #333);
+        padding-bottom: 0.5rem;
+      }
+      .security-tab {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        color: var(--color-text-secondary, #888);
+        cursor: pointer;
+        border-radius: 4px 4px 0 0;
+      }
+      .security-tab:hover {
+        color: var(--color-text, #fff);
+      }
+      .security-tab--active {
+        background: var(--color-surface-elevated, #252540);
+        color: var(--color-text, #fff);
+      }
+      /* HITL */
+      .security-hitl-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .security-btn--active {
+        background: #0d6efd;
+        color: white;
+      }
+      /* Audit Trail */
+      .security-audit-header {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .security-run-summary {
+        display: flex;
+        gap: 1rem;
+        padding: 0.5rem;
+        background: var(--color-surface-elevated, #252540);
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+      }
+      .security-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .security-timeline-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        background: var(--color-surface-elevated, #252540);
+        border-radius: 4px;
+        font-size: 0.875rem;
+        align-items: center;
+      }
+      .security-timeline-time {
+        color: var(--color-text-secondary, #888);
+        font-family: monospace;
+      }
+      .security-timeline-type {
+        font-weight: 500;
+      }
+      .security-timeline-tool {
+        color: #0d6efd;
+      }
+      .security-timeline-model {
+        color: #6c757d;
+      }
+      /* Budget */
+      .security-budget-status {
+        margin-bottom: 1rem;
+      }
+      .security-budget-tier {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+      .security-budget-warnings {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .security-warning {
+        color: #ffc107;
+        font-size: 0.875rem;
+      }
+      .security-budget-meters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .security-budget-meter {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .security-budget-meter label {
+        font-size: 0.75rem;
+        color: var(--color-text-secondary, #888);
+      }
+      .security-meter-bar {
+        height: 8px;
+        background: var(--color-surface-elevated, #333);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .security-meter-fill {
+        height: 100%;
+        background: #198754;
+        transition: width 0.3s;
+      }
+      .security-meter-fill--warning {
+        background: #ffc107;
+      }
+      .security-meter-fill--danger {
+        background: #dc3545;
+      }
+      .security-budget-violations {
+        margin-top: 1rem;
+      }
+      .security-budget-violations h4 {
+        font-size: 0.875rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--color-text-secondary, #888);
+      }
+      .security-violation {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.25rem 0;
+        font-size: 0.75rem;
+        align-items: center;
+      }
+      .security-badge--smart,
+      .security-badge--completed,
+      .security-badge--low {
+        background: #19875420;
+        color: #198754;
+      }
+      .security-badge--fast,
+      .security-badge--running,
+      .security-badge--medium {
+        background: #0d6efd20;
+        color: #0d6efd;
+      }
+      .security-badge--cheap,
+      .security-badge--warn,
+      .security-badge--high {
+        background: #ffc10720;
+        color: #ffc107;
+      }
+      .security-badge--blocked,
+      .security-badge--failed,
+      .security-badge--critical,
+      .security-badge--block {
+        background: #dc354520;
+        color: #dc3545;
+      }
+      .security-badge--downgrade {
+        background: #6c757d20;
+        color: #6c757d;
+      }
     </style>
   `;
 }
