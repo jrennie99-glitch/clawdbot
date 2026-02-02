@@ -246,7 +246,8 @@ export const securityHandlers: GatewayRequestHandlers = {
    */
   "security.quarantine.delete": async ({ respond }) => {
     try {
-      cleanupQuarantine();
+      cleanupQuarantine(0); // Remove all
+      quarantineEntries.length = 0;
       respond(true, { deleted: true });
     } catch (err) {
       respond(false, undefined, { code: -32000, message: String(err) });
