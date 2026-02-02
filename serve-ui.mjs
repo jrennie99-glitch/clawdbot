@@ -230,15 +230,47 @@ app.post("/api/setup/unlock", (req, res) => {
 
 // Static files - serve UI build
 const uiDistPath = path.join(__dirname, "dist/control-ui");
+const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || "moltbot-preview-token-2024";
+
 if (fs.existsSync(uiDistPath)) {
   app.use(express.static(uiDistPath));
 
-  // SPA fallback
+  // SPA fallback - inject token script before serving index.html
   app.use((req, res, next) => {
     if (req.path.startsWith("/api/")) {
       return res.status(404).json({ error: "Not found" });
     }
-    res.sendFile(path.join(uiDistPath, "index.html"));
+    
+    // Read and modify index.html to inject token into localStorage
+    const indexPath = path.join(uiDistPath, "index.html");
+    let html = fs.readFileSync(indexPath, "utf-8");
+    
+    // Inject script to set token in localStorage before app loads
+    const tokenScript = `
+    <script>
+      (function() {
+        // Pre-configure auth token for gateway connection
+        const KEY = "moltbot.control.settings.v1";
+        try {
+          const saved = localStorage.getItem(KEY);
+          const settings = saved ? JSON.parse(saved) : {};
+          if (!settings.token) {
+            settings.token = "${GATEWAY_TOKEN}";
+            settings.gatewayUrl = settings.gatewayUrl || (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host;
+            localStorage.setItem(KEY, JSON.stringify(settings));
+            console.log("[MoltBot] Auto-configured gateway auth token");
+          }
+        } catch (e) {
+          console.warn("[MoltBot] Failed to configure token:", e);
+        }
+      })();
+    </script>`;
+    
+    // Insert before the app script
+    html = html.replace('<script type="module"', tokenScript + '\n    <script type="module"');
+    
+    res.setHeader("Content-Type", "text/html");
+    res.send(html);
   });
 } else {
   app.use((_req, res) => {
