@@ -344,6 +344,8 @@ wss.on("connection", (clientSocket, req) => {
   });
 
   gatewaySocket.on("message", (data) => {
+    const dataStr = data.toString().substring(0, 200);
+    console.log(`[WS-PROXY] Gateway -> Client: ${dataStr}${dataStr.length >= 200 ? '...' : ''}`);
     if (clientSocket.readyState === WebSocket.OPEN) {
       clientSocket.send(data);
     }
