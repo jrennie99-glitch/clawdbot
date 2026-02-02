@@ -1,21 +1,16 @@
 /**
  * Trust Zones Implementation - SUPER SUPREME GOD MODE
- * 
+ *
  * Implements the three-zone security architecture:
  * - Zone A: Untrusted Ingestion
  * - Zone B: Reasoning (LLM)
  * - Zone C: Execution (Tools)
  */
 
-import type {
-  TrustZone,
-  ContentSource,
-  TrustLevel,
-  MemoryProvenance,
-} from './types.js';
-import { createContentHash, nowIso } from './utils.js';
-import { sanitizeContent, type SanitizeOptions } from './content-sanitizer.js';
-import { redactSecrets } from './secret-redaction.js';
+import type { TrustZone, ContentSource, TrustLevel, MemoryProvenance } from "./types.js";
+import { createContentHash, nowIso } from "./utils.js";
+import { sanitizeContent, type SanitizeOptions } from "./content-sanitizer.js";
+import { redactSecrets } from "./secret-redaction.js";
 
 // ============================================================================
 // ZONE A: UNTRUSTED INGESTION
@@ -44,14 +39,14 @@ export function quarantineContent(params: {
   metadata?: Record<string, unknown>;
 }): QuarantineEntry {
   const { content, source, metadata } = params;
-  
+
   // Determine trust level based on source
   const trustLevel = resolveTrustLevel(source);
-  
+
   // Generate unique ID and content hash
   const id = `quarantine_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
   const contentHash = createContentHash(content);
-  
+
   // Sanitize the content
   const sanitizedContent = sanitizeContent(content, {
     stripHtml: true,
@@ -60,7 +55,7 @@ export function quarantineContent(params: {
     maxLength: 100000,
     source,
   });
-  
+
   const entry: QuarantineEntry = {
     id,
     rawContent: content,
@@ -71,9 +66,9 @@ export function quarantineContent(params: {
     quarantinedAt: nowIso(),
     metadata,
   };
-  
+
   quarantineStore.set(id, entry);
-  
+
   return entry;
 }
 
@@ -82,22 +77,22 @@ export function quarantineContent(params: {
  */
 export function resolveTrustLevel(source: ContentSource): TrustLevel {
   switch (source) {
-    case 'owner':
-    case 'system':
-      return 'high';
-    case 'paired':
-      return 'medium';
-    case 'unpaired':
-    case 'skill':
-      return 'low';
-    case 'web':
-    case 'document':
-    case 'email':
-    case 'webhook':
-    case 'api':
-      return 'untrusted';
+    case "owner":
+    case "system":
+      return "high";
+    case "paired":
+      return "medium";
+    case "unpaired":
+    case "skill":
+      return "low";
+    case "web":
+    case "document":
+    case "email":
+    case "webhook":
+    case "api":
+      return "untrusted";
     default:
-      return 'untrusted';
+      return "untrusted";
   }
 }
 
@@ -114,7 +109,7 @@ export function getQuarantinedContent(id: string): QuarantineEntry | undefined {
 export function cleanupQuarantine(maxAgeMs: number = 3600000): number {
   const now = Date.now();
   let removed = 0;
-  
+
   for (const [id, entry] of quarantineStore) {
     const age = now - new Date(entry.quarantinedAt).getTime();
     if (age > maxAgeMs) {
@@ -122,7 +117,7 @@ export function cleanupQuarantine(maxAgeMs: number = 3600000): number {
       removed++;
     }
   }
-  
+
   return removed;
 }
 
@@ -152,24 +147,24 @@ export function prepareForReasoning(params: {
   systemContext?: string;
 }): ReasoningInput | null {
   const entry = quarantineStore.get(params.quarantineId);
-  
+
   if (!entry) {
     return null;
   }
-  
+
   // Only use sanitized content, never raw
-  const summary = entry.sanitizedContent ?? '[Content sanitization failed]';
-  
+  const summary = entry.sanitizedContent ?? "[Content sanitization failed]";
+
   // Redact any secrets from tool schemas
-  const sanitizedSchemas = params.toolSchemas 
+  const sanitizedSchemas = params.toolSchemas
     ? JSON.parse(redactSecrets(JSON.stringify(params.toolSchemas)).redacted)
     : undefined;
-  
+
   // Redact secrets from system context
   const sanitizedSystemContext = params.systemContext
     ? redactSecrets(params.systemContext).redacted
     : undefined;
-  
+
   return {
     summary,
     userCommand: params.userCommand,
@@ -186,18 +181,18 @@ export function validateReasoningInput(input: ReasoningInput): {
   issues: string[];
 } {
   const issues: string[] = [];
-  
+
   // Check for potential secret leakage
   const secretCheck = redactSecrets(JSON.stringify(input));
   if (secretCheck.wasRedacted) {
-    issues.push('Potential secrets detected in reasoning input');
+    issues.push("Potential secrets detected in reasoning input");
   }
-  
+
   // Check summary length
   if (input.summary.length > 50000) {
-    issues.push('Summary exceeds maximum length');
+    issues.push("Summary exceeds maximum length");
   }
-  
+
   return {
     valid: issues.length === 0,
     issues,
@@ -221,34 +216,34 @@ export function validateToolCallOrigin(params: {
   tool: string;
 }): { valid: boolean; reason: string } {
   const { sourceZone, tool } = params;
-  
+
   // Tool calls must originate from the reasoning zone
-  if (sourceZone === 'untrusted') {
+  if (sourceZone === "untrusted") {
     return {
       valid: false,
       reason: `Tool '${tool}' call rejected: cannot execute directly from untrusted zone`,
     };
   }
-  
+
   // Execution zone can call other tools (for chaining)
-  if (sourceZone === 'execution') {
+  if (sourceZone === "execution") {
     return {
       valid: true,
-      reason: 'Tool chaining allowed from execution zone',
+      reason: "Tool chaining allowed from execution zone",
     };
   }
-  
+
   // Reasoning zone is the primary source
-  if (sourceZone === 'reasoning') {
+  if (sourceZone === "reasoning") {
     return {
       valid: true,
-      reason: 'Tool call from reasoning zone',
+      reason: "Tool call from reasoning zone",
     };
   }
-  
+
   return {
     valid: false,
-    reason: `Unknown source zone: ${sourceZone}`,
+    reason: `Unknown source zone: ${String(sourceZone)}`,
   };
 }
 
@@ -268,10 +263,10 @@ export function createMemoryProvenance(params: {
   ttlMs?: number;
 }): MemoryProvenance {
   const { content, source, metadata, ttlMs } = params;
-  
+
   const id = `mem_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
   const now = new Date();
-  
+
   const provenance: MemoryProvenance = {
     id,
     sourceType: source,
@@ -284,9 +279,9 @@ export function createMemoryProvenance(params: {
       sanitized: true,
     },
   };
-  
+
   memoryProvenanceStore.set(id, provenance);
-  
+
   return provenance;
 }
 
@@ -295,18 +290,18 @@ export function createMemoryProvenance(params: {
  */
 export function isMemoryTrustedForPlanning(provenanceId: string): boolean {
   const provenance = memoryProvenanceStore.get(provenanceId);
-  
+
   if (!provenance) {
     return false;
   }
-  
+
   // Check expiration
   if (provenance.expiresAt && new Date() > provenance.expiresAt) {
     return false;
   }
-  
+
   // Only high and medium trust levels can influence planning
-  return provenance.trustLevel === 'high' || provenance.trustLevel === 'medium';
+  return provenance.trustLevel === "high" || provenance.trustLevel === "medium";
 }
 
 /**
@@ -322,13 +317,13 @@ export function getMemoryProvenance(id: string): MemoryProvenance | undefined {
 export function cleanupMemoryProvenance(): number {
   const now = new Date();
   let removed = 0;
-  
+
   for (const [id, provenance] of memoryProvenanceStore) {
     if (provenance.expiresAt && now > provenance.expiresAt) {
       memoryProvenanceStore.delete(id);
       removed++;
     }
   }
-  
+
   return removed;
 }
