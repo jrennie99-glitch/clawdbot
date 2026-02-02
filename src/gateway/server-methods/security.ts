@@ -372,7 +372,16 @@ export const securityHandlers: GatewayRequestHandlers = {
         runId: params.runId as string | undefined,
         userId: params.userId as string | undefined,
         orgId: params.orgId as string | undefined,
-        eventType: params.eventType as string | undefined,
+        eventType: params.eventType as
+          | "run_start"
+          | "input_received"
+          | "policy_decision"
+          | "tool_call"
+          | "llm_call"
+          | "output_generated"
+          | "run_complete"
+          | "error"
+          | undefined,
         limit: params.limit as number | undefined,
       });
       respond(true, { entries });
