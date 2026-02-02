@@ -57,7 +57,7 @@ const SECRET_PATTERNS: SecretPattern[] = [
   },
   {
     name: "aws_secret_key",
-    pattern: /(?<![a-zA-Z0-9\/+=])[a-zA-Z0-9\/+=]{40}(?![a-zA-Z0-9\/+=])/g,
+    pattern: /(?<![a-zA-Z0-9/+=])[a-zA-Z0-9/+=]{40}(?![a-zA-Z0-9/+=])/g,
     replacement: "[AWS_SECRET_REDACTED]",
     severity: "high", // Lower because of false positives
   },
@@ -145,13 +145,13 @@ const SECRET_PATTERNS: SecretPattern[] = [
   // Generic Patterns
   {
     name: "bearer_token",
-    pattern: /Bearer\s+[a-zA-Z0-9_\-.~+\/]+=*/gi,
+    pattern: /Bearer\s+[a-zA-Z0-9_\-.~+/]+=*/gi,
     replacement: "Bearer [TOKEN_REDACTED]",
     severity: "high",
   },
   {
     name: "basic_auth",
-    pattern: /Basic\s+[a-zA-Z0-9+\/]+=*/gi,
+    pattern: /Basic\s+[a-zA-Z0-9+/]+=*/gi,
     replacement: "Basic [AUTH_REDACTED]",
     severity: "high",
   },
