@@ -224,27 +224,17 @@ export const securityHandlers: GatewayRequestHandlers = {
    */
   "security.quarantine.list": async ({ respond }) => {
     try {
-      const entries = getQuarantinedContent();
       respond(true, {
-        entries: (entries ?? []).map(
-          (e: {
-            id: string;
-            source: string;
-            trustLevel: string;
-            timestamp: string;
-            expiresAt: string;
-            originalContent: string;
-          }) => ({
-            id: e.id,
-            source: e.source,
-            trustLevel: e.trustLevel,
-            timestamp: e.timestamp,
-            expiresAt: e.expiresAt,
-            contentPreview:
-              e.originalContent.slice(0, 100) + (e.originalContent.length > 100 ? "..." : ""),
-          }),
-        ),
-        total: (entries ?? []).length,
+        entries: quarantineEntries.map((e) => ({
+          id: e.id,
+          source: e.source,
+          trustLevel: e.trustLevel,
+          timestamp: e.timestamp,
+          expiresAt: e.expiresAt,
+          contentPreview:
+            e.originalContent.slice(0, 100) + (e.originalContent.length > 100 ? "..." : ""),
+        })),
+        total: quarantineEntries.length,
       });
     } catch (err) {
       respond(false, undefined, { code: -32000, message: String(err) });
