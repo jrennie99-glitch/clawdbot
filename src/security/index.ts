@@ -120,5 +120,48 @@ export {
   type OptimizationSuggestion,
 } from "./cost-controls.js";
 
+// HITL (Human-in-the-Loop)
+export {
+  getHITLMode,
+  setHITLMode,
+  getHITLStatus,
+  assessRiskLevel,
+  hitlRequiresConfirmation,
+  evaluateHITL,
+  type HITLMode,
+  type RiskLevel,
+} from "./hitl.js";
+
+// Audit Trail
+export {
+  logAuditEntry,
+  getRunAuditTrail,
+  getRunSummary,
+  listRuns,
+  getAuditLog,
+  exportAuditTrail,
+  getAuditStats,
+  type AuditEventType,
+  type AuditEntry,
+  type RunSummary,
+} from "./audit-trail.js";
+
+// Budget Guardrails
+export {
+  setUserBudgetConfig,
+  setOrgBudgetConfig,
+  getBudgetConfig,
+  recordCostUsage,
+  resetRunUsage as resetBudgetRunUsage,
+  checkBudgetGuardrails,
+  getBudgetViolations,
+  getBudgetDashboard,
+  type BudgetPeriod,
+  type BudgetConfig,
+  type BudgetUsage,
+  type BudgetViolation,
+  type BudgetStatus as GuardrailBudgetStatus,
+} from "./budget-guardrails.js";
+
 // Integration modules
 export * from "./integration/index.js";
