@@ -101,18 +101,54 @@ pnpm gateway:watch
 
 Note: `pnpm moltbot ...` runs TypeScript directly (via `tsx`). `pnpm build` produces `dist/` for running via Node / the packaged `moltbot` binary.
 
-## Security defaults (DM access)
+## Security (SUPER SUPREME GOD MODE)
 
-Moltbot connects to real messaging surfaces. Treat inbound DMs as **untrusted input**.
+Moltbot implements comprehensive security controls. Treat inbound DMs as **untrusted input**.
 
 Full security guide: [Security](https://docs.molt.bot/gateway/security)
 
+### Security Architecture
+
+- **Trust Zones**: Three-zone architecture (Untrusted → Reasoning → Execution)
+- **Policy Engine**: Central deterministic policy for ALL tool calls
+- **Content Sanitization**: Prompt injection detection and prevention
+- **Secret Redaction**: 25+ secret patterns detected and redacted
+- **LLM Router**: Multi-provider support (Kimi, OpenRouter, Ollama - Claude OPTIONAL)
+- **Cost Controls**: Budget management with graceful degradation
+
+### Emergency Controls
+
+```bash
+# Kill switch - disables ALL tool execution
+KILL_SWITCH=true moltbot gateway
+
+# Lockdown mode - strict confirmation requirements
+LOCKDOWN_MODE=true moltbot gateway
+```
+
+### Security Commands
+
+```bash
+# Run security audit
+moltbot security audit --deep
+
+# Fix common issues
+moltbot security audit --fix
+
+# Run security tests
+npm run security:check
+```
+
+### DM Access Defaults
+
 Default behavior on Telegram/WhatsApp/Signal/iMessage/Microsoft Teams/Discord/Google Chat/Slack:
-- **DM pairing** (`dmPolicy="pairing"` / `channels.discord.dm.policy="pairing"` / `channels.slack.dm.policy="pairing"`): unknown senders receive a short pairing code and the bot does not process their message.
-- Approve with: `moltbot pairing approve <channel> <code>` (then the sender is added to a local allowlist store).
-- Public inbound DMs require an explicit opt-in: set `dmPolicy="open"` and include `"*"` in the channel allowlist (`allowFrom` / `channels.discord.dm.allowFrom` / `channels.slack.dm.allowFrom`).
+- **DM pairing** (`dmPolicy="pairing"`): unknown senders receive a short pairing code.
+- Approve with: `moltbot pairing approve <channel> <code>`.
+- Public DMs require explicit opt-in: `dmPolicy="open"` with `"*"` in allowlist.
 
 Run `moltbot doctor` to surface risky/misconfigured DM policies.
+
+See: [THREAT_MODEL.md](/docs/security/THREAT_MODEL.md) | [SECURITY_AUDIT.md](/docs/security/SECURITY_AUDIT.md)
 
 ## Highlights
 
