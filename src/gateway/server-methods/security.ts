@@ -258,16 +258,16 @@ export const securityHandlers: GatewayRequestHandlers = {
 
       // Determine current tier based on budget
       let currentTier = "SMART";
-      if (status.nearLimit) currentTier = "FAST";
-      if (status.atLimit) currentTier = "CHEAP";
+      if (status.warning) currentTier = "FAST";
+      if (status.exceeded) currentTier = "CHEAP";
 
       respond(true, {
         tier: currentTier,
-        dailyCost: usage.dailyCost.toFixed(4),
-        runCost: usage.runCost.toFixed(4),
-        dailyLimit: budget.dailyCostLimit.toFixed(2),
-        runLimit: budget.perRunCostLimit.toFixed(2),
-        providers: providers.map((p) => ({ id: p.id, status: "available" })),
+        dailyCost: usage.dailyUsageUsd.toFixed(4),
+        runCost: usage.runUsageUsd.toFixed(4),
+        dailyLimit: budget.dailyLimitUsd.toFixed(2),
+        runLimit: budget.perRunLimitUsd.toFixed(2),
+        providers: providers.map((p) => ({ id: p.provider, status: "available" })),
       });
     } catch (err) {
       respond(false, undefined, { code: -32000, message: String(err) });
