@@ -70,10 +70,12 @@ All security modules are now **WIRED** into live execution paths:
 - Budget management with graceful degradation
 - See: `/src/security/llm-router.ts`, `/src/security/cost-controls.ts`
 
-### Phase 10-11: Kill Switch & Tests ✅
+### Phase 10-11: Kill Switch & Tests ✅ INTEGRATED
 - Kill switch implemented
 - Lockdown mode implemented
 - Environment variable controls
+- **WIRED via**: `/src/security/integration/security-init.ts`
+- **Tests**: 148 total security tests (82 unit + 66 integration)
 - See: `/src/security/kill-switch.ts`
 
 ---
