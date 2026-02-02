@@ -48,16 +48,23 @@ function hashPassword(password) {
   return `${salt}:${hash}`;
 }
 
-// Security headers middleware (relaxed CSP for Control UI)
+// Security headers middleware - PRODUCTION MODE
 app.use((req, res, next) => {
-  // CSP - Allow everything the Control UI needs
+  // Strict CSP for production
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' ws: wss: https:; img-src 'self' data: blob: https:; frame-ancestors 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' ws: wss: https:; img-src 'self' data: blob: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
   );
   res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+  // HSTS - enforce HTTPS
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  // Cache control for security
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
   next();
 });
 
