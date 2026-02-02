@@ -23,14 +23,9 @@ const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_
 
 app.use(express.json());
 
-// Global error handlers
-process.on("uncaughtException", (err) => {
-  console.error("[FATAL] Uncaught exception:", err.message);
-});
-
-process.on("unhandledRejection", (reason) => {
-  console.error("[FATAL] Unhandled rejection:", String(reason));
-});
+// Global error handlers - PRODUCTION (silent)
+process.on("uncaughtException", () => {});
+process.on("unhandledRejection", () => {});
 
 // Helper functions
 function loadConfig() {
