@@ -94,7 +94,7 @@ export const securityHandlers: GatewayRequestHandlers = {
           nearLimit: budgetStatus.warnings.length > 0,
         },
         rateLimits,
-        providers: providers.map((p) => p.provider),
+        providers,
       });
     } catch (err) {
       respond(false, undefined, { code: -32000, message: String(err) });
