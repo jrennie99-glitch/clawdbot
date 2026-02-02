@@ -28,11 +28,14 @@ Upgrade existing Moltbot/OpenClaw codebase to "SUPER SUPREME GOD MODE" security,
 - `/src/security/kill-switch.ts` - Emergency controls
 - `/src/security/llm-router.ts` - Multi-provider router
 - `/src/security/cost-controls.ts` - Budget management
-- `/src/security/integration/` - **NEW: Live integration modules**
+- `/src/security/hitl.ts` - **NEW: Human-in-the-Loop**
+- `/src/security/audit-trail.ts` - **NEW: Audit Trail / Replay**
+- `/src/security/budget-guardrails.ts` - **NEW: Per-org/user budgets**
+- `/src/security/integration/` - Live integration modules
 
 ## What's Been Implemented
 
-### Date: 2026-02-02 - INTEGRATION COMPLETE ✅
+### Date: 2026-02-02 - ALL FEATURES COMPLETE ✅
 
 #### Phase 1: Threat Model ✅
 - Full inventory of attack surfaces
