@@ -296,4 +296,204 @@ export const securityHandlers: GatewayRequestHandlers = {
       respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
     }
   },
+
+  // ============================================================================
+  // HITL (Human-in-the-Loop)
+  // ============================================================================
+
+  /**
+   * Get HITL status
+   */
+  "security.hitl.status": async ({ respond }) => {
+    try {
+      const status = getHITLStatus();
+      respond(true, status);
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  /**
+   * Set HITL mode
+   */
+  "security.hitl.set": async ({ params, respond }) => {
+    try {
+      const mode = params.mode as HITLMode;
+      setHITLMode(mode);
+      respond(true, { mode: getHITLMode() });
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  // ============================================================================
+  // AUDIT TRAIL
+  // ============================================================================
+
+  /**
+   * List runs
+   */
+  "security.audit.runs": async ({ params, respond }) => {
+    try {
+      const result = listRuns({
+        userId: params.userId as string | undefined,
+        orgId: params.orgId as string | undefined,
+        status: params.status as "running" | "completed" | "failed" | "denied" | undefined,
+        riskLevel: params.riskLevel as string | undefined,
+        limit: params.limit as number | undefined,
+        offset: params.offset as number | undefined,
+      });
+      respond(true, result);
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  /**
+   * Get run audit trail (replay)
+   */
+  "security.audit.trail": async ({ params, respond }) => {
+    try {
+      const runId = params.runId as string;
+      const entries = getRunAuditTrail(runId);
+      const summary = getRunSummary(runId);
+      respond(true, { runId, summary, entries });
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  /**
+   * Get audit log
+   */
+  "security.audit.log": async ({ params, respond }) => {
+    try {
+      const entries = getAuditLog({
+        runId: params.runId as string | undefined,
+        userId: params.userId as string | undefined,
+        orgId: params.orgId as string | undefined,
+        eventType: params.eventType as string | undefined,
+        limit: params.limit as number | undefined,
+      });
+      respond(true, { entries });
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  /**
+   * Export audit trail as JSON
+   */
+  "security.audit.export": async ({ params, respond }) => {
+    try {
+      const runId = params.runId as string;
+      const json = exportAuditTrail(runId);
+      respond(true, { json });
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  /**
+   * Get audit statistics
+   */
+  "security.audit.stats": async ({ respond }) => {
+    try {
+      const stats = getAuditStats();
+      respond(true, stats);
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  // ============================================================================
+  // BUDGET GUARDRAILS
+  // ============================================================================
+
+  /**
+   * Get budget dashboard
+   */
+  "security.budget.dashboard": async ({ params, respond }) => {
+    try {
+      const dashboard = getBudgetDashboard({
+        userId: params.userId as string | undefined,
+        orgId: params.orgId as string | undefined,
+      });
+      respond(true, dashboard);
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  /**
+   * Check budget guardrails
+   */
+  "security.budget.check": async ({ params, respond }) => {
+    try {
+      const status = checkBudgetGuardrails({
+        userId: params.userId as string | undefined,
+        orgId: params.orgId as string | undefined,
+        estimatedCostUsd: params.estimatedCostUsd as number | undefined,
+      });
+      respond(true, status);
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  /**
+   * Get budget violations
+   */
+  "security.budget.violations": async ({ params, respond }) => {
+    try {
+      const violations = getBudgetViolations({
+        userId: params.userId as string | undefined,
+        orgId: params.orgId as string | undefined,
+        limit: params.limit as number | undefined,
+      });
+      respond(true, { violations });
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  /**
+   * Set user budget config
+   */
+  "security.budget.setUser": async ({ params, respond }) => {
+    try {
+      const userId = params.userId as string;
+      setUserBudgetConfig(userId, {
+        perRunLimitUsd: params.perRunLimitUsd as number | undefined,
+        dailyLimitUsd: params.dailyLimitUsd as number | undefined,
+        monthlyLimitUsd: params.monthlyLimitUsd as number | undefined,
+        warningThreshold: params.warningThreshold as number | undefined,
+        autoDowngrade: params.autoDowngrade as boolean | undefined,
+        hardStop: params.hardStop as boolean | undefined,
+      });
+      respond(true, { success: true });
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
+
+  /**
+   * Set org budget config
+   */
+  "security.budget.setOrg": async ({ params, respond }) => {
+    try {
+      const orgId = params.orgId as string;
+      setOrgBudgetConfig(orgId, {
+        perRunLimitUsd: params.perRunLimitUsd as number | undefined,
+        dailyLimitUsd: params.dailyLimitUsd as number | undefined,
+        monthlyLimitUsd: params.monthlyLimitUsd as number | undefined,
+        warningThreshold: params.warningThreshold as number | undefined,
+        autoDowngrade: params.autoDowngrade as boolean | undefined,
+        hardStop: params.hardStop as boolean | undefined,
+      });
+      respond(true, { success: true });
+    } catch (err) {
+      respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
+    }
+  },
 };
