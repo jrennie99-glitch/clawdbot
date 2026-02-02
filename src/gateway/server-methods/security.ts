@@ -65,10 +65,10 @@ export const securityHandlers: GatewayRequestHandlers = {
           toolCallsPerRun: budget.toolCallsPerRunLimit,
         },
         usage: {
-          dailyCost: usage.dailyCost,
-          runCost: usage.runCost,
-          runTokens: usage.runTokens,
-          runToolCalls: usage.runToolCalls,
+          dailyCost: usage.dailyUsageUsd,
+          runCost: usage.runUsageUsd,
+          runTokens: usage.tokensUsed,
+          runToolCalls: usage.toolCallsUsed,
         },
         budgetStatus: {
           dailyRemaining: budgetStatus.dailyRemaining,
