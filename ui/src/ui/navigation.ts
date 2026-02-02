@@ -157,6 +157,8 @@ export function titleForTab(tab: Tab) {
       return "Debug";
     case "logs":
       return "Logs";
+    case "security":
+      return "Security";
     default:
       return "Control";
   }
@@ -186,6 +188,8 @@ export function subtitleForTab(tab: Tab) {
       return "Gateway snapshots, events, and manual RPC calls.";
     case "logs":
       return "Live tail of the gateway file logs.";
+    case "security":
+      return "Security controls, policy decisions, and blocked events.";
     default:
       return "";
   }
