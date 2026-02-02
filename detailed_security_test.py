@@ -42,7 +42,7 @@ import {{
     recordTokenUsage, 
     checkBudgetStatus, 
     resetRunUsage 
-}} from './src/security/index.js';
+}} from './dist/security/index.js';
 
 async function runTest() {{
     try {{
