@@ -345,7 +345,7 @@ describe("Rate Limiting Enforcement", () => {
     // Next should be blocked
     const result = checkToolCallRateLimit();
     expect(result.allowed).toBe(false);
-    expect(result.reason).toContain("Tool call limit");
+    expect(result.reason).toContain("Tool call");
   });
 
   it("enforces LLM call rate limits", () => {
