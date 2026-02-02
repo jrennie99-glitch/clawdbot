@@ -315,13 +315,15 @@ wss.on("connection", (clientSocket, req) => {
   console.log("[WS-PROXY] New WebSocket connection from client");
   
   // Connect to backend gateway
+  // Do NOT add x-forwarded-* headers - this would break local client detection
+  // The gateway needs to see the connection as local (from 127.0.0.1)
   const gatewayUrl = `ws://127.0.0.1:${GATEWAY_PORT}`;
   const gatewaySocket = new WebSocket(gatewayUrl, {
     headers: {
-      // Forward relevant headers
+      // Only forward user-agent, not proxy headers
       "user-agent": req.headers["user-agent"] || "moltbot-proxy",
-      "x-forwarded-for": req.socket.remoteAddress,
-      "x-forwarded-proto": req.headers["x-forwarded-proto"] || "http",
+      // Pass Host header as localhost so gateway treats as local
+      "host": "127.0.0.1:" + GATEWAY_PORT,
     },
   });
 
