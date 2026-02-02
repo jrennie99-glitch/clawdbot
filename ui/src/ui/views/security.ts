@@ -427,64 +427,311 @@ function renderQuarantine(state: MoltbotApp): TemplateResult {
   return html`
     <section class="security-section">
       <h3 class="security-section__title">Memory Quarantine</h3>
-      ${quarantine.length === 0 ? html`
-        <p class="security-empty">No quarantined entries.</p>
-      ` : html`
-        <div class="security-table-wrap">
-          <table class="security-table">
-            <thead>
-              <tr>
-                <th>Source</th>
-                <th>Trust</th>
-                <th>Preview</th>
-                <th>Expires</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${quarantine.map(q => html`
-                <tr>
-                  <td>${q.source}</td>
-                  <td>
-                    <span class="security-badge security-badge--${q.trustLevel}">${q.trustLevel}</span>
-                  </td>
-                  <td class="security-preview">${q.contentPreview}</td>
-                  <td>${new Date(q.expiresAt).toLocaleTimeString()}</td>
-                  <td>
-                    <button class="security-btn security-btn--small security-btn--danger" @click=${() => handleDeleteQuarantine(state, q.id)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              `)}
-            </tbody>
-          </table>
-        </div>
-      `}
+      ${quarantine.length === 0
+        ? html` <p class="security-empty">No quarantined entries.</p> `
+        : html`
+            <div class="security-table-wrap">
+              <table class="security-table">
+                <thead>
+                  <tr>
+                    <th>Source</th>
+                    <th>Trust</th>
+                    <th>Preview</th>
+                    <th>Expires</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${quarantine.map(
+                    (q) => html`
+                      <tr>
+                        <td>${q.source}</td>
+                        <td>
+                          <span class="security-badge security-badge--${q.trustLevel}"
+                            >${q.trustLevel}</span
+                          >
+                        </td>
+                        <td class="security-preview">${q.contentPreview}</td>
+                        <td>${new Date(q.expiresAt).toLocaleTimeString()}</td>
+                        <td>
+                          <button
+                            class="security-btn security-btn--small security-btn--danger"
+                            @click=${() => handleDeleteQuarantine(state, q.id)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    `,
+                  )}
+                </tbody>
+              </table>
+            </div>
+          `}
     </section>
   `;
 }
 
+function renderAuditTrail(state: MoltbotApp): TemplateResult {
+  const { auditRuns, selectedRunId, selectedRunTrail, selectedRunSummary } = securityState;
+
+  return html`
+    <section class="security-section">
+      <h3 class="security-section__title">Audit Trail / Replay</h3>
+      ${selectedRunId
+        ? html`
+            <div class="security-audit-detail">
+              <div class="security-audit-header">
+                <button
+                  class="security-btn security-btn--secondary"
+                  @click=${() => {
+                    securityState.selectedRunId = null;
+                    state.requestUpdate();
+                  }}
+                >
+                  ← Back to Runs
+                </button>
+                <button
+                  class="security-btn security-btn--primary"
+                  @click=${() => handleExportAudit(state, selectedRunId)}
+                >
+                  Export JSON
+                </button>
+              </div>
+              ${selectedRunSummary
+                ? html`
+                    <div class="security-run-summary">
+                      <span>Status: ${selectedRunSummary.status}</span>
+                      <span>Cost: $${selectedRunSummary.totalCostUsd.toFixed(4)}</span>
+                      <span>Tokens: ${selectedRunSummary.totalTokens}</span>
+                      <span>Tools: ${selectedRunSummary.toolCalls}</span>
+                      <span>Risk: ${selectedRunSummary.riskLevel}</span>
+                    </div>
+                  `
+                : nothing}
+              <div class="security-timeline">
+                ${selectedRunTrail.map(
+                  (e) => html`
+                    <div class="security-timeline-item">
+                      <span class="security-timeline-time"
+                        >${new Date(e.timestamp).toLocaleTimeString()}</span
+                      >
+                      <span class="security-timeline-type">${e.eventType}</span>
+                      ${e.tool ? html`<span class="security-timeline-tool">${e.tool}</span>` : nothing}
+                      ${e.policyDecision
+                        ? html`<span
+                            class="security-badge security-badge--${e.policyDecision.toLowerCase()}"
+                            >${e.policyDecision}</span
+                          >`
+                        : nothing}
+                      ${e.llmModel
+                        ? html`<span class="security-timeline-model">${e.llmModel}</span>`
+                        : nothing}
+                    </div>
+                  `,
+                )}
+              </div>
+            </div>
+          `
+        : html`
+            ${auditRuns.length === 0
+              ? html`<p class="security-empty">No runs recorded yet.</p>`
+              : html`
+                  <div class="security-table-wrap">
+                    <table class="security-table">
+                      <thead>
+                        <tr>
+                          <th>Run ID</th>
+                          <th>Status</th>
+                          <th>Cost</th>
+                          <th>Risk</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${auditRuns.slice(0, 10).map(
+                          (r) => html`
+                            <tr>
+                              <td>${r.runId.slice(0, 16)}...</td>
+                              <td>
+                                <span class="security-badge security-badge--${r.status}"
+                                  >${r.status}</span
+                                >
+                              </td>
+                              <td>$${r.totalCostUsd.toFixed(4)}</td>
+                              <td>
+                                <span class="security-badge security-badge--${r.riskLevel}"
+                                  >${r.riskLevel}</span
+                                >
+                              </td>
+                              <td>
+                                <button
+                                  class="security-btn security-btn--small"
+                                  @click=${() => handleViewRunTrail(state, r.runId)}
+                                >
+                                  View
+                                </button>
+                              </td>
+                            </tr>
+                          `,
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                `}
+          `}
+    </section>
+  `;
+}
+
+function renderBudgetGuardrails(): TemplateResult {
+  const { budgetDashboard } = securityState;
+
+  if (!budgetDashboard) {
+    return html`<section class="security-section">
+      <p class="security-empty">Budget data unavailable.</p>
+    </section>`;
+  }
+
+  const { status, violations } = budgetDashboard;
+
+  return html`
+    <section class="security-section">
+      <h3 class="security-section__title">Budget Guardrails</h3>
+
+      <div class="security-budget-status">
+        <div class="security-budget-tier">
+          Current Tier:
+          <span class="security-badge security-badge--${status.currentTier}">${status.currentTier}</span>
+          ${!status.withinBudget ? html`<span class="security-badge security-badge--deny">LIMIT EXCEEDED</span>` : nothing}
+        </div>
+        ${status.warnings.length > 0
+          ? html`
+              <div class="security-budget-warnings">
+                ${status.warnings.map((w) => html`<div class="security-warning">⚠️ ${w}</div>`)}
+              </div>
+            `
+          : nothing}
+      </div>
+
+      <div class="security-budget-meters">
+        <div class="security-budget-meter">
+          <label>Run Budget</label>
+          <div class="security-meter-bar">
+            <div
+              class="security-meter-fill ${status.usage.run.percent >= 100 ? "security-meter-fill--danger" : status.usage.run.percent >= 70 ? "security-meter-fill--warning" : ""}"
+              style="width: ${Math.min(status.usage.run.percent, 100)}%"
+            ></div>
+          </div>
+          <span>$${status.usage.run.used.toFixed(2)} / $${status.usage.run.limit.toFixed(2)}</span>
+        </div>
+        <div class="security-budget-meter">
+          <label>Daily Budget</label>
+          <div class="security-meter-bar">
+            <div
+              class="security-meter-fill ${status.usage.daily.percent >= 100 ? "security-meter-fill--danger" : status.usage.daily.percent >= 70 ? "security-meter-fill--warning" : ""}"
+              style="width: ${Math.min(status.usage.daily.percent, 100)}%"
+            ></div>
+          </div>
+          <span>$${status.usage.daily.used.toFixed(2)} / $${status.usage.daily.limit.toFixed(2)}</span>
+        </div>
+        <div class="security-budget-meter">
+          <label>Monthly Budget</label>
+          <div class="security-meter-bar">
+            <div
+              class="security-meter-fill ${status.usage.monthly.percent >= 100 ? "security-meter-fill--danger" : status.usage.monthly.percent >= 70 ? "security-meter-fill--warning" : ""}"
+              style="width: ${Math.min(status.usage.monthly.percent, 100)}%"
+            ></div>
+          </div>
+          <span
+            >$${status.usage.monthly.used.toFixed(2)} / $${status.usage.monthly.limit.toFixed(2)}</span
+          >
+        </div>
+      </div>
+
+      ${violations.length > 0
+        ? html`
+            <div class="security-budget-violations">
+              <h4>Recent Violations</h4>
+              ${violations.slice(0, 5).map(
+                (v) => html`
+                  <div class="security-violation">
+                    <span>${new Date(v.timestamp).toLocaleString()}</span>
+                    <span class="security-badge security-badge--${v.action}">${v.action}</span>
+                    <span>${v.reason}</span>
+                  </div>
+                `,
+              )}
+            </div>
+          `
+        : nothing}
+    </section>
+  `;
+}
+
+function renderTabs(state: MoltbotApp): TemplateResult {
+  const { activeTab } = securityState;
+  return html`
+    <div class="security-tabs">
+      <button
+        class="security-tab ${activeTab === "controls" ? "security-tab--active" : ""}"
+        @click=${() => {
+          securityState.activeTab = "controls";
+          state.requestUpdate();
+        }}
+      >
+        Controls
+      </button>
+      <button
+        class="security-tab ${activeTab === "audit" ? "security-tab--active" : ""}"
+        @click=${() => {
+          securityState.activeTab = "audit";
+          state.requestUpdate();
+        }}
+      >
+        Audit Trail
+      </button>
+      <button
+        class="security-tab ${activeTab === "budget" ? "security-tab--active" : ""}"
+        @click=${() => {
+          securityState.activeTab = "budget";
+          state.requestUpdate();
+        }}
+      >
+        Budget
+      </button>
+    </div>
+  `;
+}
+
 export function renderSecurityView(state: MoltbotApp): TemplateResult {
-  const { loading, error } = securityState;
+  const { loading, error, activeTab } = securityState;
 
   return html`
     <div class="security-dashboard">
       <div class="security-header">
         <h2 class="security-title">Security Dashboard</h2>
-        <button class="security-btn security-btn--secondary" @click=${() => loadSecurityData(state)} ?disabled=${loading}>
+        <button
+          class="security-btn security-btn--secondary"
+          @click=${() => loadSecurityData(state)}
+          ?disabled=${loading}
+        >
           ${loading ? "Loading..." : "Refresh"}
         </button>
       </div>
 
-      ${error ? html`<div class="security-error">${error}</div>` : nothing}
+      ${error ? html`<div class="security-error">${error}</div>` : nothing} ${renderTabs(state)}
 
-      ${renderGlobalControls(state)}
-      ${renderPendingApprovals(state)}
-      ${renderPolicyDecisions()}
-      ${renderBlockedEvents()}
-      ${renderCostStatus()}
-      ${renderQuarantine(state)}
+      <div class="security-tab-content">
+        ${activeTab === "controls"
+          ? html`
+              ${renderGlobalControls(state)} ${renderPendingApprovals(state)}
+              ${renderPolicyDecisions()} ${renderBlockedEvents()} ${renderQuarantine(state)}
+            `
+          : nothing}
+        ${activeTab === "audit" ? renderAuditTrail(state) : nothing}
+        ${activeTab === "budget" ? html`${renderBudgetGuardrails()} ${renderCostStatus()}` : nothing}
+      </div>
     </div>
 
     <style>
