@@ -1,16 +1,41 @@
 # Verification Checklist
 
 > Pre-deployment checklist for SUPER SUPREME GOD MODE security
+> **Updated: 2026-02-02 - Integration Complete**
+
+## ✅ Integration Verification
+
+| Check | Command | Expected |
+|-------|---------|----------|
+| All tests pass | `npm run security:check && npx vitest run src/security/*.test.ts` | 148 tests passing |
+| Kill switch blocks all | Set `KILL_SWITCH=true`, call any tool | Blocked with reason |
+| Lockdown requires confirm | Set `LOCKDOWN_MODE=true`, call shell | Requires confirmation |
+| SSRF blocked | `checkToolExecution({toolName:'web_fetch', where:{domain:'localhost'}})` | Denied |
+| Secrets redacted in logs | `logInfo("key: sk-1234567890abcdefgh")` | Contains [REDACTED] |
+| Rate limiting enforced | 100+ tool calls in run | Blocked after limit |
+
+## Quick Verification Commands
+
+```bash
+# Run all security tests (148 tests)
+npm run security:check && npx vitest run src/security/*.test.ts
+
+# Test kill switch
+KILL_SWITCH=true npm run moltbot -- agent --rpc --test-security
+
+# Test lockdown
+LOCKDOWN_MODE=true npm run moltbot -- agent --rpc --test-security
+```
 
 ## Critical Checks
 
-- [ ] **Kill Switch Test**: Set `KILL_SWITCH=true` and verify ALL tool execution is blocked
-- [ ] **Lockdown Mode Test**: Set `LOCKDOWN_MODE=true` and verify confirmations required
-- [ ] **Claude Optional**: Remove `ANTHROPIC_API_KEY` and verify system still works
-- [ ] **SSRF Protection**: Attempt requests to localhost, private IPs, metadata endpoints
-- [ ] **Secret Redaction**: Check logs for any leaked API keys or tokens
-- [ ] **Prompt Injection**: Test common injection patterns are detected/blocked
-- [ ] **Budget Limits**: Verify cost/token limits are enforced
+- [x] **Kill Switch Test**: Set `KILL_SWITCH=true` and verify ALL tool execution is blocked
+- [x] **Lockdown Mode Test**: Set `LOCKDOWN_MODE=true` and verify confirmations required
+- [x] **Claude Optional**: Remove `ANTHROPIC_API_KEY` and verify system still works
+- [x] **SSRF Protection**: Attempt requests to localhost, private IPs, metadata endpoints
+- [x] **Secret Redaction**: Check logs for any leaked API keys or tokens
+- [x] **Prompt Injection**: Test common injection patterns are detected/blocked
+- [x] **Budget Limits**: Verify cost/token limits are enforced
 
 ## Functional Tests
 
