@@ -16,12 +16,22 @@ import {
   loadQuarantine,
   deleteQuarantineEntry,
   loadCostStatus,
+  loadHITLStatus,
+  setHITLMode,
+  loadAuditRuns,
+  loadAuditTrail,
+  exportAuditJSON,
+  loadBudgetDashboard,
   type SecurityStatus,
   type PolicyDecision,
   type PendingApproval,
   type AttackEntry,
   type QuarantineEntry,
   type CostStatus,
+  type HITLStatus,
+  type RunSummary,
+  type AuditEntry,
+  type BudgetDashboard,
 } from "../controllers/security.js";
 
 // State stored in app
@@ -32,9 +42,16 @@ interface SecurityViewState {
   attacks: AttackEntry[];
   quarantine: QuarantineEntry[];
   cost: CostStatus | null;
+  hitl: HITLStatus | null;
+  auditRuns: RunSummary[];
+  selectedRunId: string | null;
+  selectedRunTrail: AuditEntry[];
+  selectedRunSummary: RunSummary | null;
+  budgetDashboard: BudgetDashboard | null;
   loading: boolean;
   error: string | null;
   killSwitchConfirmCode: string;
+  activeTab: "controls" | "audit" | "budget";
 }
 
 const securityState: SecurityViewState = {
@@ -44,9 +61,16 @@ const securityState: SecurityViewState = {
   attacks: [],
   quarantine: [],
   cost: null,
+  hitl: null,
+  auditRuns: [],
+  selectedRunId: null,
+  selectedRunTrail: [],
+  selectedRunSummary: null,
+  budgetDashboard: null,
   loading: false,
   error: null,
   killSwitchConfirmCode: "",
+  activeTab: "controls",
 };
 
 export async function loadSecurityData(state: MoltbotApp): Promise<void> {
@@ -55,14 +79,18 @@ export async function loadSecurityData(state: MoltbotApp): Promise<void> {
   state.requestUpdate();
 
   try {
-    const [status, decisions, pending, attacks, quarantine, cost] = await Promise.all([
-      loadSecurityStatus(state),
-      loadPolicyDecisions(state),
-      loadPendingApprovals(state),
-      loadAttacks(state),
-      loadQuarantine(state),
-      loadCostStatus(state),
-    ]);
+    const [status, decisions, pending, attacks, quarantine, cost, hitl, auditResult, budget] =
+      await Promise.all([
+        loadSecurityStatus(state),
+        loadPolicyDecisions(state),
+        loadPendingApprovals(state),
+        loadAttacks(state),
+        loadQuarantine(state),
+        loadCostStatus(state),
+        loadHITLStatus(state),
+        loadAuditRuns(state, { limit: 20 }),
+        loadBudgetDashboard(state),
+      ]);
 
     securityState.status = status;
     securityState.decisions = decisions;
@@ -70,6 +98,9 @@ export async function loadSecurityData(state: MoltbotApp): Promise<void> {
     securityState.attacks = attacks;
     securityState.quarantine = quarantine;
     securityState.cost = cost;
+    securityState.hitl = hitl;
+    securityState.auditRuns = auditResult.runs;
+    securityState.budgetDashboard = budget;
   } catch (err) {
     securityState.error = String(err);
   } finally {
