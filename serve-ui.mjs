@@ -55,15 +55,16 @@ if (fs.existsSync(uiDistPath)) {
   app.use(express.static(uiDistPath));
   
   // SPA fallback - serve index.html for all non-API routes
-  app.get("*", (req, res) => {
+  app.use((req, res, next) => {
     // Don't intercept API routes
     if (req.path.startsWith("/api/")) {
       return res.status(404).json({ error: "Not found" });
     }
+    // Serve index.html for all other routes (SPA)
     res.sendFile(path.join(uiDistPath, "index.html"));
   });
 } else {
-  app.get("*", (_req, res) => {
+  app.use((_req, res) => {
     res.status(503).send(`
       <!DOCTYPE html>
       <html>
