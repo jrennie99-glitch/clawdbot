@@ -577,6 +577,10 @@ export function renderApp(state: AppViewState) {
               onScroll: (event) => state.handleLogsScroll(event),
             })
           : nothing}
+
+        ${state.tab === "security"
+          ? renderSecurityView(state as unknown as Parameters<typeof renderSecurityView>[0])
+          : nothing}
       </main>
       ${renderExecApprovalPrompt(state)}
     </div>
