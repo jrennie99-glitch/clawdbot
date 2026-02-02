@@ -6,7 +6,6 @@
 
 import type { GatewayRequestHandlers } from "./types.js";
 import {
-  isKillSwitchActive,
   activateKillSwitch,
   deactivateKillSwitch,
   isLockdownModeEnabled,
