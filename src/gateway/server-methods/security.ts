@@ -118,7 +118,7 @@ export const securityHandlers: GatewayRequestHandlers = {
           confirmCode: confirmCode || "CONFIRM_DEACTIVATE",
         });
         if (!success) {
-          respond(false, undefined, { code: -32000, message: "Invalid confirmation code" });
+          respond(false, undefined, { code: "INVALID_CODE", message: "Invalid confirmation code" });
           return;
         }
         respond(true, { enabled: false });
