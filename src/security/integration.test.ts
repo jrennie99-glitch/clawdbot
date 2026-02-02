@@ -15,16 +15,16 @@ import {
   enableLockdownMode,
   disableLockdownMode,
   getSecurityStatus,
-} from "../kill-switch.js";
-import { evaluatePolicy, wouldDeny, wouldRequireConfirmation } from "../policy-engine.js";
-import { quarantineContent, resolveTrustLevel } from "../trust-zones.js";
+} from "./kill-switch.js";
+import { evaluatePolicy, wouldDeny, wouldRequireConfirmation } from "./policy-engine.js";
+import { quarantineContent, resolveTrustLevel } from "./trust-zones.js";
 import {
   sanitizeContent,
   detectInjectionPatterns,
   hasSuspiciousPatterns,
-} from "../content-sanitizer.js";
-import { redactSecrets, containsSecrets } from "../secret-redaction.js";
-import { isPrivateIp, isBlockedHostname } from "../utils.js";
+} from "./content-sanitizer.js";
+import { redactSecrets, containsSecrets } from "./secret-redaction.js";
+import { isPrivateIp, isBlockedHostname } from "./utils.js";
 
 // Integration modules
 import {
@@ -32,19 +32,19 @@ import {
   validateCommandForSSRF,
   validateCommandForExfiltration,
   validateExecCommand,
-} from "../integration/exec-wrapper.js";
+} from "./integration/exec-wrapper.js";
 import {
   checkMessageRateLimit,
   checkToolCallRateLimit,
   checkLLMCallRateLimit,
   resetRunToolCallCount,
-} from "../integration/rate-limiter.js";
+} from "./integration/rate-limiter.js";
 import {
   guardIncomingContent,
   shouldBlockContent,
   logPotentialAttack,
-} from "../integration/content-guard.js";
-import { redactLogMessage, isProductionMode } from "../integration/logger-middleware.js";
+} from "./integration/content-guard.js";
+import { redactLogMessage, isProductionMode } from "./integration/logger-middleware.js";
 
 // ============================================================================
 // KILL SWITCH TESTS
