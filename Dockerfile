@@ -1,5 +1,11 @@
 FROM node:22-bookworm
 
+# Install supervisor for multi-process management
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends supervisor curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install Bun (required for build scripts)
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:${PATH}"
@@ -25,16 +31,25 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 RUN CLAWDBOT_A2UI_SKIP_MISSING=1 pnpm build
-# Force pnpm for UI build (Bun may fail on ARM/Synology architectures)
 ENV CLAWDBOT_PREFER_PNPM=1
 RUN pnpm ui:install
 RUN pnpm ui:build
 
+# Create required directories
+RUN mkdir -p /var/log/supervisor /root/.moltbot
+
+# Copy supervisor and server configs
+COPY docker/supervisord.conf /etc/supervisor/conf.d/moltbot.conf
+COPY docker/moltbot.json /root/.moltbot/moltbot.json
+
 ENV NODE_ENV=production
 
-# Security hardening: Run as non-root user
-# The node:22-bookworm image includes a 'node' user (uid 1000)
-# This reduces the attack surface by preventing container escape via root privileges
-USER node
+# Expose default port (Coolify overrides via PORT)
+EXPOSE 3000
 
-CMD ["node", "dist/index.js"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-3000}/health || exit 1
+
+# Start supervisor (manages both gateway and UI server)
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
