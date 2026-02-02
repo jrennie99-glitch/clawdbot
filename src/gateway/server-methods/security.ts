@@ -90,8 +90,8 @@ export const securityHandlers: GatewayRequestHandlers = {
         budgetStatus: {
           dailyRemaining: budgetStatus.dailyRemaining,
           runRemaining: budgetStatus.runRemaining,
-          atLimit: budgetStatus.exceeded,
-          nearLimit: budgetStatus.warning,
+          atLimit: !budgetStatus.withinBudget,
+          nearLimit: budgetStatus.warnings.length > 0,
         },
         rateLimits,
         providers: providers.map((p) => p.provider),
