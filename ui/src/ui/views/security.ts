@@ -145,10 +145,45 @@ async function handleDeleteQuarantine(state: MoltbotApp, id: string): Promise<vo
   await loadSecurityData(state);
 }
 
+async function handleHITLModeChange(
+  state: MoltbotApp,
+  mode: "off" | "selective" | "full",
+): Promise<void> {
+  const success = await setHITLMode(state, mode);
+  if (success) {
+    await loadSecurityData(state);
+  } else {
+    securityState.error = "Failed to change HITL mode";
+    state.requestUpdate();
+  }
+}
+
+async function handleViewRunTrail(state: MoltbotApp, runId: string): Promise<void> {
+  securityState.selectedRunId = runId;
+  const result = await loadAuditTrail(state, runId);
+  securityState.selectedRunTrail = result.entries;
+  securityState.selectedRunSummary = result.summary;
+  state.requestUpdate();
+}
+
+async function handleExportAudit(state: MoltbotApp, runId: string): Promise<void> {
+  const json = await exportAuditJSON(state, runId);
+  if (json) {
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `audit_${runId}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
 function renderGlobalControls(state: MoltbotApp): TemplateResult {
-  const { status } = securityState;
+  const { status, hitl } = securityState;
   const killSwitchEnabled = status?.killSwitch?.enabled ?? false;
   const lockdownEnabled = status?.lockdown?.enabled ?? false;
+  const hitlMode = hitl?.mode ?? "selective";
 
   return html`
     <section class="security-section">
@@ -157,48 +192,84 @@ function renderGlobalControls(state: MoltbotApp): TemplateResult {
         <div class="security-control security-control--danger">
           <div class="security-control__header">
             <span class="security-control__label">Kill Switch</span>
-            <span class="security-control__status ${killSwitchEnabled ? 'security-control__status--active' : ''}">
+            <span class="security-control__status ${killSwitchEnabled ? "security-control__status--active" : ""}">
               ${killSwitchEnabled ? "🔴 ACTIVE" : "⚪ Inactive"}
             </span>
           </div>
           <p class="security-control__desc">Instantly blocks ALL tool execution when active.</p>
-          ${killSwitchEnabled ? html`
-            <div class="security-control__deactivate">
-              <input
-                type="text"
-                class="security-input"
-                placeholder="Confirmation code"
-                .value=${securityState.killSwitchConfirmCode}
-                @input=${(e: Event) => {
-                  securityState.killSwitchConfirmCode = (e.target as HTMLInputElement).value;
-                  state.requestUpdate();
-                }}
-              />
-              <button class="security-btn security-btn--warning" @click=${() => handleKillSwitchToggle(state, false)}>
-                Deactivate
-              </button>
-            </div>
-          ` : html`
-            <button class="security-btn security-btn--danger" @click=${() => handleKillSwitchToggle(state, true)}>
-              Activate Kill Switch
-            </button>
-          `}
+          ${killSwitchEnabled
+            ? html`
+                <div class="security-control__deactivate">
+                  <input
+                    type="text"
+                    class="security-input"
+                    placeholder="Confirmation code"
+                    .value=${securityState.killSwitchConfirmCode}
+                    @input=${(e: Event) => {
+                      securityState.killSwitchConfirmCode = (e.target as HTMLInputElement).value;
+                      state.requestUpdate();
+                    }}
+                  />
+                  <button
+                    class="security-btn security-btn--warning"
+                    @click=${() => handleKillSwitchToggle(state, false)}
+                  >
+                    Deactivate
+                  </button>
+                </div>
+              `
+            : html`
+                <button
+                  class="security-btn security-btn--danger"
+                  @click=${() => handleKillSwitchToggle(state, true)}
+                >
+                  Activate Kill Switch
+                </button>
+              `}
         </div>
 
         <div class="security-control">
           <div class="security-control__header">
             <span class="security-control__label">Lockdown Mode</span>
-            <span class="security-control__status ${lockdownEnabled ? 'security-control__status--active' : ''}">
+            <span class="security-control__status ${lockdownEnabled ? "security-control__status--active" : ""}">
               ${lockdownEnabled ? "🟡 ENABLED" : "⚪ Disabled"}
             </span>
           </div>
           <p class="security-control__desc">Forces confirmation for all sensitive operations.</p>
           <button
-            class="security-btn ${lockdownEnabled ? 'security-btn--secondary' : 'security-btn--primary'}"
+            class="security-btn ${lockdownEnabled ? "security-btn--secondary" : "security-btn--primary"}"
             @click=${() => handleLockdownToggle(state, !lockdownEnabled)}
           >
             ${lockdownEnabled ? "Disable Lockdown" : "Enable Lockdown"}
           </button>
+        </div>
+
+        <div class="security-control">
+          <div class="security-control__header">
+            <span class="security-control__label">HITL Mode</span>
+            <span class="security-control__status">${hitlMode.toUpperCase()}</span>
+          </div>
+          <p class="security-control__desc">${hitl?.description ?? "Human-in-the-Loop confirmation mode"}</p>
+          <div class="security-hitl-buttons">
+            <button
+              class="security-btn ${hitlMode === "off" ? "security-btn--active" : "security-btn--secondary"}"
+              @click=${() => handleHITLModeChange(state, "off")}
+            >
+              Off
+            </button>
+            <button
+              class="security-btn ${hitlMode === "selective" ? "security-btn--active" : "security-btn--secondary"}"
+              @click=${() => handleHITLModeChange(state, "selective")}
+            >
+              Selective
+            </button>
+            <button
+              class="security-btn ${hitlMode === "full" ? "security-btn--active" : "security-btn--secondary"}"
+              @click=${() => handleHITLModeChange(state, "full")}
+            >
+              Full
+            </button>
+          </div>
         </div>
       </div>
     </section>
