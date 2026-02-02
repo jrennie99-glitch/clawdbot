@@ -19,47 +19,65 @@ function splitSubsystem(message: string) {
 }
 
 export function logInfo(message: string, runtime: RuntimeEnv = defaultRuntime) {
-  const parsed = runtime === defaultRuntime ? splitSubsystem(message) : null;
+  // SECURITY: Redact secrets before logging
+  const safeMessage = redactLogMessage(message);
+  const parsed = runtime === defaultRuntime ? splitSubsystem(safeMessage) : null;
   if (parsed) {
     createSubsystemLogger(parsed.subsystem).info(parsed.rest);
     return;
   }
-  runtime.log(info(message));
-  getLogger().info(message);
+  runtime.log(info(safeMessage));
+  getLogger().info(safeMessage);
 }
 
 export function logWarn(message: string, runtime: RuntimeEnv = defaultRuntime) {
-  const parsed = runtime === defaultRuntime ? splitSubsystem(message) : null;
+  // SECURITY: Redact secrets before logging
+  const safeMessage = redactLogMessage(message);
+  const parsed = runtime === defaultRuntime ? splitSubsystem(safeMessage) : null;
   if (parsed) {
     createSubsystemLogger(parsed.subsystem).warn(parsed.rest);
     return;
   }
-  runtime.log(warn(message));
-  getLogger().warn(message);
+  runtime.log(warn(safeMessage));
+  getLogger().warn(safeMessage);
 }
 
 export function logSuccess(message: string, runtime: RuntimeEnv = defaultRuntime) {
-  const parsed = runtime === defaultRuntime ? splitSubsystem(message) : null;
+  // SECURITY: Redact secrets before logging
+  const safeMessage = redactLogMessage(message);
+  const parsed = runtime === defaultRuntime ? splitSubsystem(safeMessage) : null;
   if (parsed) {
     createSubsystemLogger(parsed.subsystem).info(parsed.rest);
     return;
   }
-  runtime.log(success(message));
-  getLogger().info(message);
+  runtime.log(success(safeMessage));
+  getLogger().info(safeMessage);
 }
 
 export function logError(message: string, runtime: RuntimeEnv = defaultRuntime) {
-  const parsed = runtime === defaultRuntime ? splitSubsystem(message) : null;
+  // SECURITY: Redact secrets and sanitize in production
+  let safeMessage = redactLogMessage(message);
+  if (isProductionMode()) {
+    // In production, don't leak verbose error details
+    safeMessage = safeMessage.split("\n")[0] || safeMessage;
+  }
+  const parsed = runtime === defaultRuntime ? splitSubsystem(safeMessage) : null;
   if (parsed) {
     createSubsystemLogger(parsed.subsystem).error(parsed.rest);
     return;
   }
-  runtime.error(danger(message));
-  getLogger().error(message);
+  runtime.error(danger(safeMessage));
+  getLogger().error(safeMessage);
 }
 
 export function logDebug(message: string) {
+  // SECURITY: Skip debug logs in production unless explicitly enabled
+  if (!shouldLogDebug()) {
+    return;
+  }
+  // SECURITY: Redact secrets before logging
+  const safeMessage = redactLogMessage(message);
   // Always emit to file logger (level-filtered); console only when verbose.
-  getLogger().debug(message);
-  logVerboseConsole(message);
+  getLogger().debug(safeMessage);
+  logVerboseConsole(safeMessage);
 }
