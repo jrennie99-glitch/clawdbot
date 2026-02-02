@@ -262,52 +262,41 @@ wss.on("connection", (clientSocket, req) => {
   });
 
   gatewaySocket.on("message", (data) => {
-    // Convert Buffer to string for browser WebSocket compatibility
     const messageStr = data.toString();
-    const dataStr = messageStr.substring(0, 200);
-    console.log(`[WS-PROXY] Gateway -> Client: ${dataStr}${dataStr.length >= 200 ? '...' : ''}`);
     if (clientSocket.readyState === WebSocket.OPEN) {
       clientSocket.send(messageStr);
     }
   });
 
   gatewaySocket.on("close", (code, reason) => {
-    console.log(`[WS-PROXY] Gateway closed: ${code} - ${reason}`);
     if (clientSocket.readyState === WebSocket.OPEN) {
       clientSocket.close(code, reason.toString());
     }
   });
 
-  gatewaySocket.on("error", (err) => {
-    console.error("[WS-PROXY] Gateway socket error:", err.message);
+  gatewaySocket.on("error", () => {
     if (clientSocket.readyState === WebSocket.OPEN) {
-      clientSocket.close(1011, "Gateway connection error");
+      clientSocket.close(1011, "Gateway error");
     }
   });
 
-  // Client -> Gateway
   clientSocket.on("message", (data) => {
-    const dataStr = data.toString().substring(0, 200);
-    console.log(`[WS-PROXY] Client -> Gateway: ${dataStr}${dataStr.length >= 200 ? '...' : ''}`);
     if (gatewayConnected && gatewaySocket.readyState === WebSocket.OPEN) {
       gatewaySocket.send(data);
     } else {
-      // Queue messages until gateway is connected
       messageQueue.push(data);
     }
   });
 
   clientSocket.on("close", (code, reason) => {
-    console.log(`[WS-PROXY] Client closed: ${code} - ${reason}`);
     if (gatewaySocket.readyState === WebSocket.OPEN) {
       gatewaySocket.close(code, reason.toString());
     }
   });
 
-  clientSocket.on("error", (err) => {
-    console.error("[WS-PROXY] Client socket error:", err.message);
+  clientSocket.on("error", () => {
     if (gatewaySocket.readyState === WebSocket.OPEN) {
-      gatewaySocket.close(1011, "Client connection error");
+      gatewaySocket.close(1011, "Client error");
     }
   });
 });
