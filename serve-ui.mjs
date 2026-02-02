@@ -3,6 +3,7 @@
  * - Serves static UI files from dist/control-ui
  * - Proxies WebSocket connections to the gateway backend
  * - Provides health endpoint + setup wizard API
+ * - Injects auth token into the UI
  */
 
 import express from "express";
@@ -18,6 +19,7 @@ const app = express();
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT ?? "8001", 10);
 const CONFIG_PATH = process.env.CONFIG_PATH || path.join(__dirname, ".moltbot-config.json");
+const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || "moltbot-preview-token-2024";
 
 app.use(express.json());
 
@@ -46,23 +48,16 @@ function hashPassword(password) {
   return `${salt}:${hash}`;
 }
 
-// Security headers middleware
+// Security headers middleware (relaxed CSP for Control UI)
 app.use((req, res, next) => {
-  // CSP - Allow WebSocket connections and inline scripts for the UI
+  // CSP - Allow everything the Control UI needs
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data:;"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' ws: wss: https:; img-src 'self' data: blob: https:; frame-ancestors 'self';"
   );
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  
-  // HSTS in production (when served over HTTPS via proxy)
-  if (process.env.NODE_ENV === "production") {
-    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  }
-  
   next();
 });
 
@@ -228,49 +223,71 @@ app.post("/api/setup/unlock", (req, res) => {
   res.json({ success: true, message: "Setup unlocked" });
 });
 
-// Static files - serve UI build
+// UI dist path
 const uiDistPath = path.join(__dirname, "dist/control-ui");
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || "moltbot-preview-token-2024";
+
+// Generate modified index.html with injected token
+function getIndexHtml() {
+  const indexPath = path.join(uiDistPath, "index.html");
+  if (!fs.existsSync(indexPath)) return null;
+  
+  let html = fs.readFileSync(indexPath, "utf-8");
+  
+  // Inject script to set token in localStorage before app loads
+  const tokenScript = `
+<script>
+  (function() {
+    // Pre-configure auth token for gateway connection
+    var KEY = "moltbot.control.settings.v1";
+    try {
+      var saved = localStorage.getItem(KEY);
+      var settings = saved ? JSON.parse(saved) : {};
+      // Always update token to ensure fresh value
+      settings.token = "${GATEWAY_TOKEN}";
+      settings.gatewayUrl = settings.gatewayUrl || (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host;
+      localStorage.setItem(KEY, JSON.stringify(settings));
+      console.log("[MoltBot] Auto-configured gateway auth token");
+    } catch (e) {
+      console.warn("[MoltBot] Failed to configure token:", e);
+    }
+  })();
+</script>`;
+  
+  // Insert before any other scripts
+  html = html.replace("<head>", "<head>" + tokenScript);
+  
+  return html;
+}
 
 if (fs.existsSync(uiDistPath)) {
-  app.use(express.static(uiDistPath));
+  // Serve index.html with token injection for root and SPA routes
+  app.get("/", (req, res) => {
+    const html = getIndexHtml();
+    if (html) {
+      res.setHeader("Content-Type", "text/html");
+      res.send(html);
+    } else {
+      res.status(500).send("UI not built");
+    }
+  });
 
-  // SPA fallback - inject token script before serving index.html
+  // Serve static assets (CSS, JS, images) without modification
+  app.use("/assets", express.static(path.join(uiDistPath, "assets")));
+  app.use("/favicon.ico", express.static(path.join(uiDistPath, "favicon.ico")));
+
+  // SPA fallback for all other non-API routes
   app.use((req, res, next) => {
     if (req.path.startsWith("/api/")) {
       return res.status(404).json({ error: "Not found" });
     }
-    
-    // Read and modify index.html to inject token into localStorage
-    const indexPath = path.join(uiDistPath, "index.html");
-    let html = fs.readFileSync(indexPath, "utf-8");
-    
-    // Inject script to set token in localStorage before app loads
-    const tokenScript = `
-    <script>
-      (function() {
-        // Pre-configure auth token for gateway connection
-        const KEY = "moltbot.control.settings.v1";
-        try {
-          const saved = localStorage.getItem(KEY);
-          const settings = saved ? JSON.parse(saved) : {};
-          if (!settings.token) {
-            settings.token = "${GATEWAY_TOKEN}";
-            settings.gatewayUrl = settings.gatewayUrl || (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host;
-            localStorage.setItem(KEY, JSON.stringify(settings));
-            console.log("[MoltBot] Auto-configured gateway auth token");
-          }
-        } catch (e) {
-          console.warn("[MoltBot] Failed to configure token:", e);
-        }
-      })();
-    </script>`;
-    
-    // Insert before the app script
-    html = html.replace('<script type="module"', tokenScript + '\n    <script type="module"');
-    
-    res.setHeader("Content-Type", "text/html");
-    res.send(html);
+    // Serve modified index.html for SPA routes
+    const html = getIndexHtml();
+    if (html) {
+      res.setHeader("Content-Type", "text/html");
+      res.send(html);
+    } else {
+      next();
+    }
   });
 } else {
   app.use((_req, res) => {
@@ -374,4 +391,5 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`[SERVER] MoltBot UI server listening on http://0.0.0.0:${PORT}`);
   console.log(`[SERVER] Health check: http://localhost:${PORT}/health`);
   console.log(`[SERVER] Gateway proxy: ws://localhost:${PORT} -> ws://127.0.0.1:${GATEWAY_PORT}`);
+  console.log(`[SERVER] Auth token: ${GATEWAY_TOKEN.substring(0, 10)}...`);
 });
