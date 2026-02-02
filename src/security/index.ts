@@ -1,14 +1,14 @@
 /**
  * Security Index - SUPER SUPREME GOD MODE
- * 
+ *
  * Main export for all security modules.
  */
 
 // Types
-export * from './types.js';
+export * from "./types.js";
 
 // Core utilities
-export * from './utils.js';
+export * from "./utils.js";
 
 // Trust zones
 export {
@@ -25,7 +25,7 @@ export {
   cleanupMemoryProvenance,
   type QuarantineEntry,
   type ReasoningInput,
-} from './trust-zones.js';
+} from "./trust-zones.js";
 
 // Content sanitization
 export {
@@ -37,7 +37,7 @@ export {
   getInjectionSeverity,
   type SanitizeOptions,
   type SanitizeResult,
-} from './content-sanitizer.js';
+} from "./content-sanitizer.js";
 
 // Secret redaction
 export {
@@ -47,7 +47,7 @@ export {
   createRedactionMiddleware,
   redactEnvVars,
   safeStringify,
-} from './secret-redaction.js';
+} from "./secret-redaction.js";
 
 // Policy engine
 export {
@@ -62,7 +62,7 @@ export {
   cleanupExpiredPreviews,
   addPolicyRule,
   getPolicyRules,
-} from './policy-engine.js';
+} from "./policy-engine.js";
 
 // Kill switch & lockdown
 export {
@@ -78,7 +78,7 @@ export {
   removeFromLockdownAllowlist,
   getSecurityStatus,
   initializeSecurityControls,
-} from './kill-switch.js';
+} from "./kill-switch.js";
 
 // LLM router
 export {
@@ -98,7 +98,7 @@ export {
   type TaskType,
   type RouteOptions,
   type ProviderConfig,
-} from './llm-router.js';
+} from "./llm-router.js";
 
 // Cost controls
 export {
@@ -118,4 +118,7 @@ export {
   shouldUseCache,
   type BudgetStatus,
   type OptimizationSuggestion,
-} from './cost-controls.js';
+} from "./cost-controls.js";
+
+// Integration modules
+export * from "./integration/index.js";
