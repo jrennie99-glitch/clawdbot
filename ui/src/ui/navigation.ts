@@ -7,7 +7,7 @@ export const TAB_GROUPS = [
     tabs: ["overview", "channels", "instances", "sessions", "cron"],
   },
   { label: "Agent", tabs: ["skills", "nodes"] },
-  { label: "Settings", tabs: ["config", "debug", "logs"] },
+  { label: "Settings", tabs: ["config", "debug", "logs", "security"] },
 ] as const;
 
 export type Tab =
@@ -21,7 +21,8 @@ export type Tab =
   | "chat"
   | "config"
   | "debug"
-  | "logs";
+  | "logs"
+  | "security";
 
 const TAB_PATHS: Record<Tab, string> = {
   overview: "/overview",
@@ -35,6 +36,7 @@ const TAB_PATHS: Record<Tab, string> = {
   config: "/config",
   debug: "/debug",
   logs: "/logs",
+  security: "/admin/security",
 };
 
 const PATH_TO_TAB = new Map(
