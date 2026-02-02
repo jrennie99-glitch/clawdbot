@@ -35,10 +35,27 @@ const policyDecisions: Array<{
   userId?: string;
 }> = [];
 
+// Track quarantine entries
+const quarantineEntries: Array<{
+  id: string;
+  source: string;
+  trustLevel: string;
+  timestamp: string;
+  expiresAt: string;
+  originalContent: string;
+}> = [];
+
 export function recordPolicyDecision(entry: (typeof policyDecisions)[0]) {
   policyDecisions.unshift(entry);
   if (policyDecisions.length > 100) {
     policyDecisions.pop();
+  }
+}
+
+export function addQuarantineEntry(entry: (typeof quarantineEntries)[0]) {
+  quarantineEntries.unshift(entry);
+  if (quarantineEntries.length > 100) {
+    quarantineEntries.pop();
   }
 }
 
