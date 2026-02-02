@@ -237,11 +237,8 @@ export const securityHandlers: GatewayRequestHandlers = {
   /**
    * Delete quarantine entry
    */
-  "security.quarantine.delete": async ({ params, respond }) => {
+  "security.quarantine.delete": async ({ respond }) => {
     try {
-      const id = params.id as string;
-      // Use cleanup to remove specific entry (cleanup removes expired, we need manual removal)
-      // For now, just confirm - full implementation would track and remove by ID
       cleanupQuarantine();
       respond(true, { deleted: true });
     } catch (err) {
