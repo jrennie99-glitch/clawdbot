@@ -179,7 +179,7 @@ export const securityHandlers: GatewayRequestHandlers = {
   "security.pending.approve": async ({ params, respond }) => {
     try {
       const previewId = params.previewId as string;
-      approveToolExecution(previewId, "dashboard");
+      approveToolExecution(previewId);
       respond(true, { approved: true });
     } catch (err) {
       respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
@@ -192,8 +192,7 @@ export const securityHandlers: GatewayRequestHandlers = {
   "security.pending.deny": async ({ params, respond }) => {
     try {
       const previewId = params.previewId as string;
-      const reason = (params.reason as string) || "Denied via dashboard";
-      denyToolExecution(previewId, reason);
+      denyToolExecution(previewId);
       respond(true, { denied: true });
     } catch (err) {
       respond(false, undefined, { code: "SECURITY_ERROR", message: String(err) });
