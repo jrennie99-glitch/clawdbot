@@ -126,6 +126,8 @@ export function iconForTab(tab: Tab): IconName {
       return "bug";
     case "logs":
       return "scrollText";
+    case "security":
+      return "shield";
     default:
       return "folder";
   }
