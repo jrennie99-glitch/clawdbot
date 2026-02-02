@@ -59,10 +59,10 @@ export const securityHandlers: GatewayRequestHandlers = {
         killSwitch: status.killSwitch,
         lockdown: status.lockdown,
         budget: {
-          daily: budget.dailyCostLimit,
-          perRun: budget.perRunCostLimit,
-          tokensPerRun: budget.tokensPerRun,
-          toolCallsPerRun: budget.toolCallsPerRun,
+          daily: budget.dailyLimitUsd,
+          perRun: budget.perRunLimitUsd,
+          tokensPerRun: budget.tokensPerRunLimit,
+          toolCallsPerRun: budget.toolCallsPerRunLimit,
         },
         usage: {
           dailyCost: usage.dailyCost,
