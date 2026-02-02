@@ -27,6 +27,7 @@ import {
 // Budget Guardrails
 import {
   setUserBudgetConfig,
+  setOrgBudgetConfig,
   getBudgetConfig,
   recordCostUsage,
   resetRunUsage,
