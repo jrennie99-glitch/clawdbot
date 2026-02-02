@@ -302,9 +302,4 @@ wss.on("connection", (clientSocket, req) => {
 });
 
 // Start server
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`[SERVER] MoltBot UI server listening on http://0.0.0.0:${PORT}`);
-  console.log(`[SERVER] Health check: http://localhost:${PORT}/health`);
-  console.log(`[SERVER] Gateway proxy: ws://localhost:${PORT} -> ws://127.0.0.1:${GATEWAY_PORT}`);
-  console.log(`[SERVER] Auth token: ${GATEWAY_TOKEN.substring(0, 10)}...`);
-});
+server.listen(PORT, "0.0.0.0", () => {});
