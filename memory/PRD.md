@@ -74,7 +74,35 @@ Upgrade existing Moltbot/OpenClaw codebase to "SUPER SUPREME GOD MODE" security,
 #### Phase 10-11: Kill Switch & Tests ✅ INTEGRATED
 - Kill switch (KILL_SWITCH=true)
 - Lockdown mode (LOCKDOWN_MODE=true)
-- **148 security tests passing** (82 unit + 66 integration)
+- **190 security tests passing**
+
+#### NEW FEATURES - 2026-02-02 ✅
+
+##### Feature 1: HITL (Human-in-the-Loop) ✅
+- Toggleable modes: off | selective | full
+- Risk assessment (low/medium/high/critical)
+- Integrates with Policy Engine
+- Kill Switch and Lockdown override HITL
+- Does NOT weaken DENY rules
+- **File**: `/src/security/hitl.ts`
+- **42 tests passing**
+
+##### Feature 2: Audit Trail / Replay ✅
+- Read-only execution replay
+- Stores: input, policy decisions, tool calls, LLM usage, cost, timestamps
+- Secrets automatically redacted
+- Export to JSON
+- **File**: `/src/security/audit-trail.ts`
+- **Tests in features.test.ts**
+
+##### Feature 3: Per-Org/User Budget Guardrails ✅
+- Per-run, daily, monthly budgets
+- Warning at 70% (configurable)
+- Auto-downgrade model tier when near limit
+- Hard stop when exceeded
+- Cannot be bypassed
+- **File**: `/src/security/budget-guardrails.ts`
+- **Tests in features.test.ts**
 
 ## Integration Status
 
@@ -88,6 +116,9 @@ Upgrade existing Moltbot/OpenClaw codebase to "SUPER SUPREME GOD MODE" security,
 | Rate Limiting | ✅ WIRED | `checkToolCallRateLimit()`, `checkLLMCallRateLimit()` |
 | SSRF Protection | ✅ WIRED | `validateCommandForSSRF()` |
 | Exfil Prevention | ✅ WIRED | `validateCommandForExfiltration()` |
+| **HITL** | ✅ WIRED | `evaluateHITL()` + Dashboard toggle |
+| **Audit Trail** | ✅ WIRED | `logAuditEntry()` + Dashboard view |
+| **Budget Guardrails** | ✅ WIRED | `checkBudgetGuardrails()` + Dashboard |
 
 ## Prioritized Backlog
 
@@ -97,25 +128,29 @@ Upgrade existing Moltbot/OpenClaw codebase to "SUPER SUPREME GOD MODE" security,
 - [x] Secret redaction
 - [x] Kill switch
 - [x] LLM router
-- [x] **Integration with existing tool execution paths**
+- [x] Integration with existing tool execution paths
+- [x] **HITL (Human-in-the-Loop)**
+- [x] **Audit Trail / Replay**
+- [x] **Budget Guardrails**
+- [x] **Security Dashboard**
 
 ### P1 (High)
-- [ ] Production security dashboard at `/admin/security`
 - [ ] PostgreSQL audit logging persistence
 - [ ] Full end-to-end integration tests
 
 ### P2 (Medium)
 - [ ] Skills sandbox containerization
 - [ ] Custom policy rule UI
-- [ ] Cost dashboard
 
 ## Next Tasks
 
 1. ~~**Integration**: Wire security modules into existing tool execution paths~~ ✅ DONE
-2. **Security Dashboard**: Admin UI for monitoring and control
-3. **Audit Logging**: Add audit log persistence to PostgreSQL
-4. **Production Testing**: Deploy and test in production environment
-5. **Documentation**: Complete API documentation for security modules
+2. ~~**Security Dashboard**: Admin UI for monitoring and control~~ ✅ DONE
+3. ~~**HITL**: Toggleable Human-in-the-Loop~~ ✅ DONE
+4. ~~**Audit Trail**: Read-only execution replay~~ ✅ DONE
+5. ~~**Budget Guardrails**: Per-org/user cost limits~~ ✅ DONE
+6. **Audit Persistence**: Save audit logs to PostgreSQL
+7. **Production Testing**: Deploy and test in production environment
 
 ## Environment Variables
 
@@ -124,6 +159,9 @@ Upgrade existing Moltbot/OpenClaw codebase to "SUPER SUPREME GOD MODE" security,
 KILL_SWITCH=true/false
 LOCKDOWN_MODE=true/false
 KILL_SWITCH_CONFIRM_CODE=secret_code
+
+# HITL Mode
+HITL_MODE=off|selective|full
 
 # Rate Limiting
 RATE_LIMIT_MESSAGES_PER_USER=60
