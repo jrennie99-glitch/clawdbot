@@ -1,0 +1,20 @@
+{
+  "gateway": {
+    "mode": "local",
+    "bind": "lan",
+    "port": 8001,
+    "auth": {
+      "token": "${GATEWAY_TOKEN:-moltbot-secure-token}"
+    },
+    "controlUi": {
+      "enabled": true,
+      "allowInsecureAuth": true
+    },
+    "trustedProxies": [
+      "127.0.0.1",
+      "10.0.0.0/8",
+      "172.16.0.0/12",
+      "192.168.0.0/16"
+    ]
+  }
+}
