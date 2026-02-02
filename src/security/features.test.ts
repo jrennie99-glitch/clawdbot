@@ -354,10 +354,13 @@ describe("Budget Guardrails", () => {
     });
 
     it("user config takes precedence over org", () => {
-      setUserBudgetConfig(testUserId, { perRunLimitUsd: 10 });
-      setOrgBudgetConfig(testOrgId, { perRunLimitUsd: 20 });
+      const userId = `precedence_user_${Date.now()}`;
+      const orgId = `precedence_org_${Date.now()}`;
 
-      const config = getBudgetConfig({ userId: testUserId, orgId: testOrgId });
+      setUserBudgetConfig(userId, { perRunLimitUsd: 10 });
+      setOrgBudgetConfig(orgId, { perRunLimitUsd: 20 });
+
+      const config = getBudgetConfig({ userId, orgId });
       expect(config.perRunLimitUsd).toBe(10);
     });
   });
