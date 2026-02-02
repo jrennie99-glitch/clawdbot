@@ -151,25 +151,9 @@ app.get("/api/config", (_req, res) => {
   });
 });
 
-// Unlock setup (admin only - simplified)
-app.post("/api/setup/unlock", (req, res) => {
-  const { adminEmail, adminPassword } = req.body;
-  const config = loadConfig();
-
-  if (!config) {
-    return res.status(400).json({ error: "No config exists" });
-  }
-
-  // Verify admin credentials (simplified)
-  if (config.adminEmail !== adminEmail) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-
-  // Unlock
-  config.setupLocked = false;
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
-
-  res.json({ success: true, message: "Setup unlocked" });
+// Unlock setup - DISABLED IN PRODUCTION
+app.post("/api/setup/unlock", (_req, res) => {
+  return res.status(403).json({ error: "Setup modification disabled in production mode" });
 });
 
 // UI dist path
