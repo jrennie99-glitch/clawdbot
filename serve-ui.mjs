@@ -10,77 +10,111 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import crypto from "crypto";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = parseInt(process.env.PORT ?? "3000", 10);
-const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT ?? "8001", 10);
-const CONFIG_PATH = process.env.CONFIG_PATH || path.join(__dirname, ".moltbot-config.json");
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || "moltbot-preview-token-2024";
+
+// Configuration from environment
+const PORT = parseInt(process.env.PORT || "3000", 10);
+const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT || "8001", 10);
+
+// CANONICAL TOKEN SOURCE: GATEWAY_TOKEN env var (with fallback for compatibility)
+const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || "";
+
+// Validate token at startup
+if (!GATEWAY_TOKEN) {
+  console.error("[FATAL] GATEWAY_TOKEN environment variable is not set.");
+  console.error("[FATAL] Set GATEWAY_TOKEN in Coolify environment variables and restart.");
+}
+
+// LLM Provider status (check which keys are configured)
+const PROVIDER_STATUS = {
+  openai: !!process.env.OPENAI_API_KEY,
+  anthropic: !!process.env.ANTHROPIC_API_KEY,
+  google: !!process.env.GOOGLE_API_KEY,
+  moonshot: !!process.env.MOONSHOT_API_KEY || !!process.env.KIMI_API_KEY,
+  openrouter: !!process.env.OPENROUTER_API_KEY,
+  ollama: !!process.env.OLLAMA_BASE_URL,
+};
+
+// Log provider status at startup (no secrets)
+console.log("[STARTUP] LLM Provider Status:");
+Object.entries(PROVIDER_STATUS).forEach(([provider, configured]) => {
+  console.log(`  - ${provider}: ${configured ? "configured" : "NOT configured (missing API key)"}`);
+});
 
 app.use(express.json());
 
-// Global error handlers - PRODUCTION (silent)
-process.on("uncaughtException", () => {});
-process.on("unhandledRejection", () => {});
+// Disable X-Powered-By header
+app.disable("x-powered-by");
 
-// Helper functions
-function loadConfig() {
-  if (!fs.existsSync(CONFIG_PATH)) return null;
-  try {
-    return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
-  } catch {
-    return null;
-  }
-}
-
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString("hex");
-  const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
-  return `${salt}:${hash}`;
-}
-
-// Security headers middleware - PRODUCTION MODE
+// Security headers middleware
 app.use((req, res, next) => {
-  // Strict CSP for production
   res.setHeader(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' ws: wss: https:; img-src 'self' data: blob: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
   );
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
-  // HSTS - enforce HTTPS
-  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
-  // Cache control for security
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-  res.setHeader("Pragma", "no-cache");
+  
+  // HSTS only if behind HTTPS proxy
+  if (req.headers["x-forwarded-proto"] === "https" || req.secure) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
   next();
 });
 
-// Health endpoint
-app.get("/health", (_req, res) => {
-  res.json({
-    status: "ok",
+// Health endpoint - checks actual gateway connectivity
+app.get("/health", async (_req, res) => {
+  let gatewayStatus = "unknown";
+  let gatewayHealthy = false;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/health`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    gatewayHealthy = response.ok;
+    gatewayStatus = gatewayHealthy ? "connected" : "unhealthy";
+  } catch {
+    gatewayStatus = "unreachable";
+  }
+
+  const tokenConfigured = !!GATEWAY_TOKEN;
+  const overallHealthy = gatewayHealthy && tokenConfigured;
+
+  res.status(overallHealthy ? 200 : 503).json({
+    status: overallHealthy ? "ok" : "degraded",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     version: "1.0.0",
-    services: {
-      frontend: "running",
-      gateway: "proxied"
-    }
+    gateway: {
+      status: gatewayStatus,
+      healthy: gatewayHealthy
+    },
+    token: {
+      configured: tokenConfigured
+    },
+    providers: PROVIDER_STATUS
   });
 });
 
-// Gateway health check endpoint
+// Gateway health endpoint
 app.get("/gateway/health", async (_req, res) => {
   try {
-    const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/health`, { timeout: 5000 });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/health`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    
     if (response.ok) {
       res.json({ status: "ok", gateway: "connected" });
     } else {
@@ -91,121 +125,125 @@ app.get("/gateway/health", async (_req, res) => {
   }
 });
 
-// Gateway health check (proxy to backend) - API version
-app.get("/api/gateway/health", async (_req, res) => {
-  try {
-    const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/health`);
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(503).json({
-      status: "error",
-      message: "Gateway not reachable",
-      error: String(err),
-    });
-  }
+// Provider status endpoint
+app.get("/api/providers/status", (_req, res) => {
+  res.json({
+    providers: PROVIDER_STATUS,
+    configured: Object.entries(PROVIDER_STATUS)
+      .filter(([, v]) => v)
+      .map(([k]) => k)
+  });
 });
 
-// API routes
+// API status
 app.get("/api/status", (_req, res) => {
-  const config = loadConfig();
   res.json({
     gateway: "standalone",
-    configured: !!config?.setupLocked,
-    llmProvider: config?.llmProvider || "not_configured",
+    configured: !!GATEWAY_TOKEN,
+    tokenConfigured: !!GATEWAY_TOKEN,
+    providers: PROVIDER_STATUS
   });
 });
 
-// Setup status - LOCKED IN PRODUCTION
+// Setup endpoints - locked in production
 app.get("/api/setup/status", (_req, res) => {
-  const config = loadConfig();
-  // In production mode, setup is always locked
-  res.json({
-    configured: true,
-    locked: true,
-    production: true
-  });
+  res.json({ configured: true, locked: true, production: true });
 });
 
-// Setup wizard - DISABLED IN PRODUCTION
 app.post("/api/setup/validate-token", (_req, res) => {
-  return res.status(403).json({ error: "Setup disabled in production mode" });
+  res.status(403).json({ error: "Setup disabled in production mode" });
 });
 
-// Setup wizard - DISABLED IN PRODUCTION
 app.post("/api/setup/apply", (_req, res) => {
-  return res.status(403).json({ error: "Setup disabled in production mode" });
+  res.status(403).json({ error: "Setup disabled in production mode" });
 });
 
-// Get safe config (no secrets)
-app.get("/api/config", (_req, res) => {
-  const config = loadConfig();
-  if (!config) {
-    return res.json({ configured: false });
-  }
+app.post("/api/setup/unlock", (_req, res) => {
+  res.status(403).json({ error: "Setup modification disabled in production mode" });
+});
 
+app.get("/api/config", (_req, res) => {
   res.json({
     configured: true,
-    adminEmail: config.adminEmail,
-    hitlMode: config.hitlMode,
-    lockdownMode: config.lockdownMode,
-    llmProvider: config.llmProvider,
-    localBaseUrl: config.localBaseUrl,
-    allowlistDomains: config.allowlistDomains,
-    budgetPerRunUsd: config.budgetPerRunUsd,
-    budgetDailyUsd: config.budgetDailyUsd,
-    budgetMonthlyUsd: config.budgetMonthlyUsd,
-    moonshotConfigured: !!config.moonshotApiKey,
-    openrouterConfigured: !!config.openrouterApiKey,
-    createdAt: config.createdAt,
+    tokenConfigured: !!GATEWAY_TOKEN,
+    providers: PROVIDER_STATUS
   });
-});
-
-// Unlock setup - DISABLED IN PRODUCTION
-app.post("/api/setup/unlock", (_req, res) => {
-  return res.status(403).json({ error: "Setup modification disabled in production mode" });
 });
 
 // UI dist path
 const uiDistPath = path.join(__dirname, "dist/control-ui");
 
-// Generate modified index.html with injected token
-function getIndexHtml() {
+// Generate modified index.html with injected token and config
+function getIndexHtml(urlToken) {
   const indexPath = path.join(uiDistPath, "index.html");
   if (!fs.existsSync(indexPath)) return null;
   
   let html = fs.readFileSync(indexPath, "utf-8");
   
-  // Inject script to set token in localStorage before app loads
-  const tokenScript = `
+  // Use URL token if provided, otherwise use env token
+  const effectiveToken = urlToken || GATEWAY_TOKEN;
+  const tokenMissing = !effectiveToken;
+  
+  // Inject configuration script
+  const configScript = `
 <script>
   (function() {
-    // Pre-configure auth token for gateway connection
     var KEY = "moltbot.control.settings.v1";
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlToken = urlParams.get('token');
+    
+    // If token in URL, save to localStorage and remove from URL
+    if (urlToken) {
+      try {
+        var settings = JSON.parse(localStorage.getItem(KEY) || '{}');
+        settings.token = urlToken;
+        settings.gatewayUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host;
+        localStorage.setItem(KEY, JSON.stringify(settings));
+        // Remove token from URL without reload
+        var newUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, '', newUrl);
+      } catch (e) {}
+    }
+    
+    // Configure from env-injected token if no localStorage token
     try {
       var saved = localStorage.getItem(KEY);
       var settings = saved ? JSON.parse(saved) : {};
-      // Always update token to ensure fresh value
-      settings.token = "${GATEWAY_TOKEN}";
+      var envToken = "${effectiveToken}";
+      
+      if (!settings.token && envToken) {
+        settings.token = envToken;
+      }
       settings.gatewayUrl = settings.gatewayUrl || (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host;
       localStorage.setItem(KEY, JSON.stringify(settings));
-      console.log("[MoltBot] Auto-configured gateway auth token");
-    } catch (e) {
-      console.warn("[MoltBot] Failed to configure token:", e);
+    } catch (e) {}
+    
+    // Show warning banner if token is missing
+    var tokenMissing = ${tokenMissing};
+    if (tokenMissing && !urlToken) {
+      document.addEventListener('DOMContentLoaded', function() {
+        var banner = document.createElement('div');
+        banner.id = 'token-warning';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc3545;color:white;padding:12px;text-align:center;z-index:9999;font-family:system-ui;';
+        banner.innerHTML = '<strong>⚠️ GATEWAY_TOKEN not configured.</strong> Set GATEWAY_TOKEN in Coolify environment variables and restart. Or append <code>?token=YOUR_TOKEN</code> to this URL.';
+        document.body.prepend(banner);
+      });
     }
+    
+    // Expose provider status to UI
+    window.__MOLTBOT_PROVIDERS__ = ${JSON.stringify(PROVIDER_STATUS)};
   })();
 </script>`;
   
-  // Insert before any other scripts
-  html = html.replace("<head>", "<head>" + tokenScript);
-  
+  html = html.replace("<head>", "<head>" + configScript);
   return html;
 }
 
 if (fs.existsSync(uiDistPath)) {
-  // Serve index.html with token injection for root and SPA routes
+  // Root route with token injection
   app.get("/", (req, res) => {
-    const html = getIndexHtml();
+    const urlToken = req.query.token;
+    const html = getIndexHtml(urlToken);
     if (html) {
       res.setHeader("Content-Type", "text/html");
       res.send(html);
@@ -214,17 +252,17 @@ if (fs.existsSync(uiDistPath)) {
     }
   });
 
-  // Serve static assets (CSS, JS, images) without modification
+  // Static assets
   app.use("/assets", express.static(path.join(uiDistPath, "assets")));
   app.use("/favicon.ico", express.static(path.join(uiDistPath, "favicon.ico")));
 
-  // SPA fallback for all other non-API routes
+  // SPA fallback
   app.use((req, res, next) => {
-    if (req.path.startsWith("/api/")) {
+    if (req.path.startsWith("/api/") || req.path.startsWith("/gateway/") || req.path === "/health") {
       return res.status(404).json({ error: "Not found" });
     }
-    // Serve modified index.html for SPA routes
-    const html = getIndexHtml();
+    const urlToken = req.query.token;
+    const html = getIndexHtml(urlToken);
     if (html) {
       res.setHeader("Content-Type", "text/html");
       res.send(html);
@@ -237,11 +275,10 @@ if (fs.existsSync(uiDistPath)) {
     res.status(503).send(`
       <!DOCTYPE html>
       <html>
-        <head><title>MoltBot - Not Built</title></head>
+        <head><title>MoltBot - UI Not Built</title></head>
         <body style="font-family:system-ui;padding:2rem;background:#1a1a2e;color:#fff">
           <h1>UI Not Built</h1>
-          <p>Run <code>cd ui && npm run build</code> first.</p>
-          <p><a href="/health" style="color:#0d6efd">/health</a> is available.</p>
+          <p>Run the build process first.</p>
         </body>
       </html>
     `);
@@ -251,7 +288,7 @@ if (fs.existsSync(uiDistPath)) {
 // Create HTTP server
 const server = http.createServer(app);
 
-// WebSocket proxy server - proxy all WebSocket connections to the gateway
+// WebSocket proxy
 const wss = new WebSocketServer({ server });
 
 wss.on("connection", (clientSocket, req) => {
@@ -259,7 +296,7 @@ wss.on("connection", (clientSocket, req) => {
   const gatewaySocket = new WebSocket(gatewayUrl, {
     headers: {
       "user-agent": req.headers["user-agent"] || "moltbot-proxy",
-      "host": "127.0.0.1:" + GATEWAY_PORT,
+      "host": `127.0.0.1:${GATEWAY_PORT}`,
     },
   });
 
@@ -317,4 +354,8 @@ wss.on("connection", (clientSocket, req) => {
 });
 
 // Start server
-server.listen(PORT, "0.0.0.0", () => {});
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`[SERVER] MoltBot UI server listening on port ${PORT}`);
+  console.log(`[SERVER] Gateway proxy target: ws://127.0.0.1:${GATEWAY_PORT}`);
+  console.log(`[SERVER] Token configured: ${!!GATEWAY_TOKEN}`);
+});
