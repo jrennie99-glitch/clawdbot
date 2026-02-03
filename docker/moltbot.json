@@ -3,9 +3,6 @@
     "mode": "local",
     "bind": "lan",
     "port": 8001,
-    "auth": {
-      "token": "${GATEWAY_TOKEN:-moltbot-secure-token}"
-    },
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true
