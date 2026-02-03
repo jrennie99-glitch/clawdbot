@@ -20,13 +20,13 @@ const app = express();
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT || "8001", 10);
 
-// CANONICAL TOKEN SOURCE: GATEWAY_TOKEN env var (with fallback for compatibility)
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || "";
+// CANONICAL TOKEN SOURCE: GATEWAY_TOKEN only - no fallbacks
+const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || "";
 
 // Validate token at startup
 if (!GATEWAY_TOKEN) {
   console.error("[FATAL] GATEWAY_TOKEN environment variable is not set.");
-  console.error("[FATAL] Set GATEWAY_TOKEN in Coolify environment variables and restart.");
+  console.error("[FATAL] Set GATEWAY_TOKEN in Coolify and restart.");
 }
 
 // LLM Provider status (check which keys are configured)
