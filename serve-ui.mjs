@@ -191,6 +191,7 @@ function getIndexHtml(urlToken) {
     var KEY = "moltbot.control.settings.v1";
     var urlParams = new URLSearchParams(window.location.search);
     var urlToken = urlParams.get('token');
+    var envToken = "${effectiveToken}";
     
     // If token in URL, save to localStorage and remove from URL
     if (urlToken) {
@@ -205,18 +206,23 @@ function getIndexHtml(urlToken) {
       } catch (e) {}
     }
     
-    // Configure from env-injected token if no localStorage token
+    // ALWAYS sync token from environment if available
+    // This ensures token mismatch is resolved on page load
     try {
       var saved = localStorage.getItem(KEY);
       var settings = saved ? JSON.parse(saved) : {};
-      var envToken = "${effectiveToken}";
       
-      if (!settings.token && envToken) {
+      // If env token is set and different from stored token, update it
+      if (envToken && settings.token !== envToken) {
+        console.log('[MoltBot] Syncing token from server configuration');
         settings.token = envToken;
       }
+      
       settings.gatewayUrl = settings.gatewayUrl || (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host;
       localStorage.setItem(KEY, JSON.stringify(settings));
-    } catch (e) {}
+    } catch (e) {
+      console.error('[MoltBot] Failed to sync token:', e);
+    }
     
     // Show warning banner if token is missing
     var tokenMissing = ${tokenMissing};
