@@ -48,7 +48,7 @@ class MoltBotLLMProviderTestSuite:
         
         test_code = """
         try {
-            const defaults = require('./src/agents/defaults.js');
+            const defaults = require('./dist/agents/defaults.js');
             
             const requiredExports = [
                 'DEFAULT_LLM_TIMEOUT_MS',
