@@ -42,7 +42,21 @@ function createStreamFnWithExtraParams(
   provider: string,
   modelId: string,
 ): StreamFn | undefined {
+  // CRITICAL: Force-disable streaming for providers that cause hanging
+  const forceDisableStreaming = isStreamingDisabled(provider);
+  
   if (!extraParams || Object.keys(extraParams).length === 0) {
+    // Even with no extra params, we may need to disable streaming
+    if (forceDisableStreaming) {
+      log.debug(`Force-disabling streaming for provider: ${provider}`);
+      const underlying = baseStreamFn ?? streamSimple;
+      const wrappedStreamFn: StreamFn = (model, context, options) =>
+        underlying(model as Model<Api>, context, {
+          ...options,
+          stream: false, // CRITICAL: Force streaming off
+        });
+      return wrappedStreamFn;
+    }
     return undefined;
   }
 
@@ -57,8 +71,14 @@ function createStreamFnWithExtraParams(
   if (cacheControlTtl) {
     streamParams.cacheControlTtl = cacheControlTtl;
   }
+  
+  // CRITICAL: Force-disable streaming for problematic providers
+  if (forceDisableStreaming) {
+    log.debug(`Force-disabling streaming for provider: ${provider}`);
+    (streamParams as SimpleStreamOptions).stream = false;
+  }
 
-  if (Object.keys(streamParams).length === 0) {
+  if (Object.keys(streamParams).length === 0 && !forceDisableStreaming) {
     return undefined;
   }
 
