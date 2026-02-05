@@ -178,6 +178,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...browserHandlers,
   ...securityHandlers,
   ...providersHandlers,
+  ...securityDashboardHandlers,
 };
 
 export async function handleGatewayRequest(
