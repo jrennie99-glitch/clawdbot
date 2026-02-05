@@ -3,18 +3,25 @@
  * 
  * Centralizes LLM provider configuration with support for:
  * - Multiple providers (Groq, OpenRouter, Ollama, Anthropic)
- * - Hard timeouts to prevent stuck requests
- * - Non-streaming mode for reliability
- * - Provider failover
+ * - Hard timeouts to prevent stuck requests (5s connection, 12s total)
+ * - Force-disabled streaming for cheap models
+ * - Provider failover with fail-fast
  */
 
 import {
   DEFAULT_LLM_TIMEOUT_MS,
+  DEFAULT_CONNECTION_TIMEOUT_MS,
   DEFAULT_LLM_MAX_RETRIES,
   DEFAULT_LLM_STREAMING,
   GROQ_BASE_URL,
   OPENROUTER_BASE_URL,
   OLLAMA_DEFAULT_BASE_URL,
+  MAX_TOKENS_GROQ,
+  MAX_TOKENS_OPENROUTER,
+  MAX_TOKENS_OLLAMA,
+  MAX_TOKENS_CLAUDE,
+  MAX_TOKENS_DEFAULT,
+  STREAMING_DISABLED_PROVIDERS,
 } from "./defaults.js";
 
 export type LLMProviderStatus = {
