@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-02-05T10:14:53.503604",
+  "summary": {
+    "tests_run": 10,
+    "tests_passed": 5,
+    "tests_failed": 5,
+    "success_rate": 50.0
+  },
+  "failed_tests": [
+    "Firewall module exports",
+    "Gateway protection module exports",
+    "Lockdown mode module exports",
+    "Dashboard handlers module exports",
+    "Firewall functionality"
+  ],
+  "detailed_results": {
+    "firewall_exports": {
+      "status": "FAILED",
+      "error": "node:internal/modules/esm/resolve:283\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/tmp/src/security/firewall.js' imported from /tmp/security_test.mjs\n    at finalizeResolution (node:internal/modules/esm/resolve:283:11)\n    at moduleResolve (node:internal/modules/esm/resolve:952:10)\n    at defaultResolve (node:internal/modules/esm/resolve:1188:11)\n    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:640:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:264:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:168:49) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///tmp/src/security/firewall.js'\n}\n\nNode.js v20.20.0\n"
+    },
+    "gateway_protection_exports": {
+      "status": "FAILED",
+      "error": "node:internal/modules/esm/resolve:283\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/tmp/src/security/gateway-protection.js' imported from /tmp/security_test.mjs\n    at finalizeResolution (node:internal/modules/esm/resolve:283:11)\n    at moduleResolve (node:internal/modules/esm/resolve:952:10)\n    at defaultResolve (node:internal/modules/esm/resolve:1188:11)\n    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:640:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:264:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:168:49) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///tmp/src/security/gateway-protection.js'\n}\n\nNode.js v20.20.0\n"
+    },
+    "lockdown_mode_exports": {
+      "status": "FAILED",
+      "error": "node:internal/modules/esm/resolve:283\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/tmp/src/security/lockdown-mode.js' imported from /tmp/security_test.mjs\n    at finalizeResolution (node:internal/modules/esm/resolve:283:11)\n    at moduleResolve (node:internal/modules/esm/resolve:952:10)\n    at defaultResolve (node:internal/modules/esm/resolve:1188:11)\n    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:640:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:264:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:168:49) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///tmp/src/security/lockdown-mode.js'\n}\n\nNode.js v20.20.0\n"
+    },
+    "dashboard_handlers_exports": {
+      "status": "FAILED",
+      "error": "node:internal/modules/esm/resolve:283\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/tmp/src/security/integration/dashboard-handlers.js' imported from /tmp/security_test.mjs\n    at finalizeResolution (node:internal/modules/esm/resolve:283:11)\n    at moduleResolve (node:internal/modules/esm/resolve:952:10)\n    at defaultResolve (node:internal/modules/esm/resolve:1188:11)\n    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:640:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:264:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:168:49) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///tmp/src/security/integration/dashboard-handlers.js'\n}\n\nNode.js v20.20.0\n"
+    },
+    "server_methods_integration": {
+      "status": "PASSED",
+      "details": "securityDashboardHandlers properly imported and included"
+    },
+    "server_methods_list_integration": {
+      "status": "PASSED",
+      "details": "All security methods found: ['security.dashboard', 'security.blocked.list', 'security.blocked.add', 'security.blocked.remove', 'security.incidents.list', 'security.gateway.connections', 'security.lockdown.toggle', 'security.lockdown.status']"
+    },
+    "env_example_security_vars": {
+      "status": "PASSED",
+      "details": "All 21 security variables found"
+    },
+    "deploy_coolify_security_docs": {
+      "status": "PASSED",
+      "details": "All 7 security sections found"
+    },
+    "changelog_security_entry": {
+      "status": "PASSED",
+      "details": "All 7 security elements found"
+    },
+    "firewall_functionality": {
+      "status": "FAILED",
+      "error": "node:internal/modules/esm/resolve:283\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/tmp/src/security/firewall.js' imported from /tmp/security_test.mjs\n    at finalizeResolution (node:internal/modules/esm/resolve:283:11)\n    at moduleResolve (node:internal/modules/esm/resolve:952:10)\n    at defaultResolve (node:internal/modules/esm/resolve:1188:11)\n    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:640:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:264:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:168:49) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///tmp/src/security/firewall.js'\n}\n\nNode.js v20.20.0\n"
+    }
+  }
+}
