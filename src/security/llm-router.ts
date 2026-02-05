@@ -199,6 +199,8 @@ const providerStatus: Record<LLMProvider, ProviderStatus> = {
  */
 export function isProviderAvailable(provider: LLMProvider): boolean {
   switch (provider) {
+    case 'groq':
+      return !!process.env.GROQ_API_KEY || !!process.env.OPENAI_API_KEY;
     case 'moonshot':
       return !!process.env.MOONSHOT_API_KEY;
     case 'openrouter':
