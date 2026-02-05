@@ -1,8 +1,8 @@
 import type { MoltbotConfig } from "../config/config.js";
-import { DEFAULT_LLM_TIMEOUT_MS } from "./defaults.js";
+import { DEFAULT_LLM_TIMEOUT_MS, DEFAULT_CONNECTION_TIMEOUT_MS } from "./defaults.js";
 
-// Default to a much shorter timeout (15s) for faster failure detection
-// The old 600s default caused stuck requests with cheaper providers
+// Default to 12s timeout for faster failure detection
+// The old 15s (600s in some configs) caused stuck requests with cheaper providers
 const DEFAULT_AGENT_TIMEOUT_SECONDS = Math.floor(DEFAULT_LLM_TIMEOUT_MS / 1000);
 
 const normalizeNumber = (value: unknown): number | undefined =>
