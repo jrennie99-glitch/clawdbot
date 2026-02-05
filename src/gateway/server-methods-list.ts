@@ -85,6 +85,16 @@ const BASE_METHODS = [
   // Provider status and testing
   "providers.status",
   "providers.test",
+  // Security dashboard (internal only)
+  "security.dashboard",
+  "security.blocked.list",
+  "security.blocked.add",
+  "security.blocked.remove",
+  "security.incidents.list",
+  "security.gateway.connections",
+  "security.lockdown.toggle",
+  "security.lockdown.status",
+  "security.admin.check",
 ];
 
 export function listGatewayMethods(): string[] {
