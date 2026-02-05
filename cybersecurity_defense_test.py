@@ -79,7 +79,7 @@ import {
     logSecurityIncident, 
     getSecurityLog, 
     getSecurityStats 
-} from './dist/security/firewall.js';
+} from '/app/dist/security/firewall.js';
 
 const result = {
     success: true,
@@ -669,7 +669,7 @@ import {
     validateHeaders,
     validatePayloadSize,
     validateUrlLength
-} from './dist/security/firewall.js';
+} from '/app/dist/security/firewall.js';
 
 // Test IP blocking
 const testIp = "192.168.1.100";
