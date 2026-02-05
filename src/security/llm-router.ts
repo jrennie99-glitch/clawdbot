@@ -24,6 +24,24 @@ import type { LLMProvider, LLMTier, LLMModelConfig, LLMRoutingDecision } from '.
  * SECURITY: These are the required models - DO NOT substitute.
  */
 const MODEL_CATALOG: Record<string, LLMModelConfig> = {
+  // GROQ MODELS (PRIMARY - FASTEST)
+  'groq-llama-3.1-8b': {
+    provider: 'groq',
+    modelId: 'llama-3.1-8b-instant',
+    tier: 'fast',
+    maxTokens: 512,
+    contextWindow: 131072,
+    costPerMillionTokens: 0.05,
+  },
+  'groq-llama-3.3-70b': {
+    provider: 'groq',
+    modelId: 'llama-3.3-70b-versatile',
+    tier: 'smart',
+    maxTokens: 512,
+    contextWindow: 131072,
+    costPerMillionTokens: 0.59,
+  },
+  
   // SMART / REASONING TIER
   'deepseek-reasoner': {
     provider: 'openrouter',
