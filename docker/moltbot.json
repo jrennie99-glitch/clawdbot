@@ -68,7 +68,7 @@
             "input": ["text"],
             "cost": { "input": 0.59, "output": 0.79, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 131072,
-            "maxTokens": 32768
+            "maxTokens": 512
           },
           {
             "id": "mixtral-8x7b-32768",
