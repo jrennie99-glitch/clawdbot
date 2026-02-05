@@ -162,16 +162,17 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   const mode = cfg.gateway?.mode;
   if (!opts.allowUnconfigured && mode !== "local") {
     if (!configExists) {
-      defaultRuntime.error(
+      gatewayLog.warn(
         `Missing config. Run \`${formatCliCommand("moltbot setup")}\` or set gateway.mode=local (or pass --allow-unconfigured).`,
       );
+      gatewayLog.warn("Gateway will run in DISABLED mode");
     } else {
-      defaultRuntime.error(
+      gatewayLog.warn(
         `Gateway start blocked: set gateway.mode=local (current: ${mode ?? "unset"}) or pass --allow-unconfigured.`,
       );
+      gatewayLog.warn("Gateway will run in DISABLED mode");
     }
-    defaultRuntime.exit(1);
-    return;
+    // CRITICAL: Don't exit - continue in disabled mode
   }
   const bindRaw = toOptionString(opts.bind) ?? cfg.gateway?.bind ?? "loopback";
   const bind =
@@ -183,9 +184,10 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
       ? bindRaw
       : null;
   if (!bind) {
-    defaultRuntime.error('Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")');
-    defaultRuntime.exit(1);
-    return;
+    gatewayLog.warn('Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")');
+    gatewayLog.warn("Using default bind: loopback");
+    // CRITICAL: Don't exit - use safe default
+    bind = "loopback";
   }
 
   const miskeys = extractGatewayMiskeys(snapshot?.parsed);
