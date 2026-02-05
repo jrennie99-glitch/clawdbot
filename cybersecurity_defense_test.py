@@ -169,7 +169,7 @@ import {
     authenticateGateway,
     getActiveConnections,
     getGatewayStats
-} from './dist/security/gateway-protection.js';
+} from '/app/dist/security/gateway-protection.js';
 
 const result = {
     success: true,
