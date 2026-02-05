@@ -387,7 +387,7 @@ console.log(JSON.stringify(result));
         test_code = '''
 import fs from 'fs';
 
-const serverMethodsContent = fs.readFileSync('./src/gateway/server-methods.ts', 'utf8');
+const serverMethodsContent = fs.readFileSync('/app/src/gateway/server-methods.ts', 'utf8');
 
 const result = {
     success: true,
