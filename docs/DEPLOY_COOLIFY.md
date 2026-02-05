@@ -11,12 +11,13 @@
 
 | Variable | Provider | Description |
 |----------|----------|-------------|
+| `DEEPSEEK_API_KEY` | DeepSeek | API key from https://platform.deepseek.com (enables DeepSeek models) |
+| `GOOGLE_API_KEY` | Google AI (Gemini) | API key from https://aistudio.google.com/apikey |
+| `OPENROUTER_API_KEY` | OpenRouter | API key from https://openrouter.ai/keys |
 | `OPENAI_API_KEY` | OpenAI | API key from https://platform.openai.com |
 | `ANTHROPIC_API_KEY` | Anthropic | API key from https://console.anthropic.com |
-| `GOOGLE_API_KEY` | Google AI | API key from https://makersuite.google.com |
 | `MOONSHOT_API_KEY` | Moonshot/Kimi | API key from https://platform.moonshot.cn |
 | `KIMI_API_KEY` | Moonshot/Kimi | Alternative name for Moonshot key |
-| `OPENROUTER_API_KEY` | OpenRouter | API key from https://openrouter.ai |
 | `OLLAMA_BASE_URL` | Ollama (local) | URL to Ollama server, e.g., `http://localhost:11434` |
 
 ## Coolify Configuration
@@ -42,11 +43,14 @@ GATEWAY_TOKEN=your-secure-random-token-here
 
 ### Optional LLM Provider Keys
 ```
+DEEPSEEK_API_KEY=...
+GOOGLE_API_KEY=...
+OPENROUTER_API_KEY=...
+
+# Optional (if you also want these providers)
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
-GOOGLE_API_KEY=...
 MOONSHOT_API_KEY=...
-OPENROUTER_API_KEY=...
 ```
 
 ## Quick Start

@@ -29,8 +29,16 @@ GATEWAY_TOKEN=<generate-secure-token>
 
 ### Environment Variables (Optional)
 ```
-KIMI_API_KEY=<your-moonshot-api-key>
+# Free / common provider keys
+DEEPSEEK_API_KEY=<your-deepseek-key>
+GOOGLE_API_KEY=<your-google-ai-studio-key>
 OPENROUTER_API_KEY=<your-openrouter-key>
+
+# Other providers (optional)
+KIMI_API_KEY=<your-moonshot-api-key>
+OPENAI_API_KEY=<your-openai-key>
+ANTHROPIC_API_KEY=<your-anthropic-key>
+
 PUBLIC_URL=https://your-domain.com
 ```
 
