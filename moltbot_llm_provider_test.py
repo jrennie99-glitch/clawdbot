@@ -319,7 +319,7 @@ class MoltBotLLMProviderTestSuite:
         
         test_code = """
         try {
-            const serverMethods = require('./src/gateway/server-methods.js');
+            const serverMethods = require('./dist/gateway/server-methods.js');
             
             if (!serverMethods.coreGatewayHandlers) {
                 console.log(JSON.stringify({
