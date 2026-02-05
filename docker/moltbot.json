@@ -59,7 +59,7 @@
             "input": ["text"],
             "cost": { "input": 0.05, "output": 0.08, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 131072,
-            "maxTokens": 8192
+            "maxTokens": 512
           },
           {
             "id": "llama-3.3-70b-versatile",
