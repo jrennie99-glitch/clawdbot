@@ -1,171 +1,257 @@
-# MoltBot Coolify Deployment Guide
+# Deploy MoltBot on Coolify
 
-## Required Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GATEWAY_TOKEN` | **YES** | Authentication token for gateway. Generate a secure random string (32+ chars). Both backend and frontend must use the same value. |
-| `PORT` | No | Server port. Default: 3000. Coolify usually sets this automatically. |
-
-## Optional Environment Variables (LLM Providers)
-
-| Variable | Provider | Description |
-|----------|----------|-------------|
-| `DEEPSEEK_API_KEY` | DeepSeek | API key from https://platform.deepseek.com (enables DeepSeek models) |
-| `GOOGLE_API_KEY` | Google AI (Gemini) | API key from https://aistudio.google.com/apikey |
-| `OPENROUTER_API_KEY` | OpenRouter | API key from https://openrouter.ai/keys |
-| `OPENAI_API_KEY` | OpenAI | API key from https://platform.openai.com |
-| `ANTHROPIC_API_KEY` | Anthropic | API key from https://console.anthropic.com |
-| `MOONSHOT_API_KEY` | Moonshot/Kimi | API key from https://platform.moonshot.cn |
-| `KIMI_API_KEY` | Moonshot/Kimi | Alternative name for Moonshot key |
-| `OLLAMA_BASE_URL` | Ollama (local) | URL to Ollama server, e.g., `http://localhost:11434` |
-
-## Coolify Configuration
-
-### Build Settings
-| Setting | Value |
-|---------|-------|
-| Build Type | Dockerfile |
-| Dockerfile Location | `/Dockerfile` |
-| Build Context | `/` |
-
-### Network Settings
-| Setting | Value |
-|---------|-------|
-| Exposed Port | `3000` |
-| Health Check Path | `/health` |
-| Health Check Interval | `30s` |
-
-### Required Environment Variables in Coolify
-```
-GATEWAY_TOKEN=your-secure-random-token-here
-```
-
-### Optional LLM Provider Keys
-```
-DEEPSEEK_API_KEY=...
-GOOGLE_API_KEY=...
-OPENROUTER_API_KEY=...
-
-# Optional (if you also want these providers)
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-MOONSHOT_API_KEY=...
-```
+This guide covers deploying MoltBot to Coolify with **cheap, fast LLM providers** (Groq/OpenRouter) instead of expensive Claude.
 
 ## Quick Start
 
-1. **Create new service in Coolify**
-   - Select "Docker" as build type
-   - Point to your repository
+### 1. Required Environment Variables
 
-2. **Set environment variables**
-   - Go to Environment Variables tab
-   - Add `GATEWAY_TOKEN` with a secure random value
-   - Add any LLM provider API keys you want to use
+```env
+# Authentication (REQUIRED - generate random string)
+GATEWAY_TOKEN=your-secure-random-token
 
-3. **Deploy**
-   - Click Deploy
-   - Wait for build to complete
-
-4. **Verify**
-   - Open your app URL
-   - You should see "Health OK" indicator
-   - If you see "Disconnected", check troubleshooting below
-
-## Using Token via URL
-
-If you need to set the token dynamically without redeploying:
-
-```
-https://your-app.com/?token=YOUR_GATEWAY_TOKEN
+# LLM Config (CRITICAL for performance)
+DEFAULT_LLM_PROVIDER=groq
+DEFAULT_MODEL=llama-3.1-8b-instant
+LLM_STREAMING=false
+LLM_REQUEST_TIMEOUT_MS=15000
+LLM_MAX_RETRIES=1
 ```
 
-The token will be saved to localStorage and the URL will be cleaned.
+### 2. Choose Your Provider
 
-## Troubleshooting
+#### Option A: Groq (Recommended - Free tier available)
 
-### Error: "Disconnected (1008): unauthorized: gateway token mismatch"
+Fast inference, free tier with rate limits.
 
-**Cause**: The frontend and backend are using different tokens.
+```env
+DEFAULT_LLM_PROVIDER=groq
+DEFAULT_MODEL=llama-3.1-8b-instant
+GROQ_API_KEY=gsk_your_groq_api_key
 
-**Fix**:
-1. Ensure `GATEWAY_TOKEN` is set in Coolify environment variables
-2. Restart the deployment
-3. Clear browser localStorage and reload
-
-### Error: "GATEWAY_TOKEN not configured" banner
-
-**Cause**: The `GATEWAY_TOKEN` environment variable is not set.
-
-**Fix**:
-1. Go to Coolify → Your App → Environment Variables
-2. Add: `GATEWAY_TOKEN=your-secure-random-token`
-3. Redeploy
-
-### Error: "OpenAI 401: You didn't provide an API key"
-
-**Cause**: Trying to use OpenAI without setting the API key.
-
-**Fix**:
-1. Add `OPENAI_API_KEY=sk-...` to environment variables
-2. Redeploy
-3. Or select a different provider that is configured
-
-### Health check shows "degraded"
-
-**Cause**: Gateway process not running or token not configured.
-
-**Fix**:
-1. Check container logs for startup errors
-2. Ensure `GATEWAY_TOKEN` is set
-3. Verify no port conflicts
-
-### Docker build fails with lockfile error
-
-**Cause**: pnpm-lock.yaml out of sync.
-
-**Fix**: This should be resolved in the current version. If it persists:
-1. Pull latest code
-2. Rebuild without cache in Coolify
-
-## Verifying Deployment
-
-### Health Check
-```bash
-curl https://your-app.com/health
+# OR use OpenAI-compatible endpoint:
+OPENAI_BASE_URL=https://api.groq.com/openai/v1
+OPENAI_API_KEY=gsk_your_groq_api_key
 ```
 
-Expected response:
+**Available Groq Models:**
+| Model | Speed | Quality | Context |
+|-------|-------|---------|---------|
+| `llama-3.1-8b-instant` | ⚡ Fastest | Good | 128K |
+| `llama-3.3-70b-versatile` | Fast | Excellent | 128K |
+| `mixtral-8x7b-32768` | Fast | Very Good | 32K |
+| `deepseek-r1-distill-llama-70b` | Medium | Excellent (reasoning) | 128K |
+
+Get your free API key: https://console.groq.com/keys
+
+---
+
+#### Option B: OpenRouter (Many models, pay-per-use)
+
+Access to 100+ models from various providers.
+
+```env
+DEFAULT_LLM_PROVIDER=openrouter
+DEFAULT_MODEL=meta-llama/llama-3.1-8b-instruct
+OPENROUTER_API_KEY=sk-or-v1-your_openrouter_key
+
+# OR use OpenAI-compatible endpoint:
+OPENAI_BASE_URL=https://openrouter.ai/api/v1
+OPENAI_API_KEY=sk-or-v1-your_openrouter_key
+```
+
+**Recommended OpenRouter Models:**
+| Model | Cost | Quality |
+|-------|------|---------|
+| `meta-llama/llama-3.1-8b-instruct` | $0.06/M | Good |
+| `deepseek/deepseek-chat` | $0.14/M | Very Good |
+| `qwen/qwen-2.5-72b-instruct` | $0.35/M | Excellent |
+| `mistralai/mixtral-8x7b-instruct` | $0.24/M | Very Good |
+
+Get your API key: https://openrouter.ai/keys
+
+---
+
+#### Option C: Ollama (Local, free)
+
+Run models locally. Requires Ollama server running separately.
+
+```env
+DEFAULT_LLM_PROVIDER=ollama
+DEFAULT_MODEL=llama3
+OLLAMA_BASE_URL=http://your-ollama-server:11434/v1
+OLLAMA_MODEL=llama3
+```
+
+**Note:** Ollama must be accessible from your Coolify container. Use internal Docker network or expose Ollama publicly.
+
+---
+
+## Full Environment Variables Reference
+
+### LLM Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEFAULT_LLM_PROVIDER` | `groq` | Primary LLM provider |
+| `DEFAULT_MODEL` | `llama-3.1-8b-instant` | Model to use |
+| `LLM_STREAMING` | `false` | Streaming mode (keep false for reliability) |
+| `LLM_REQUEST_TIMEOUT_MS` | `15000` | Request timeout (15s) |
+| `LLM_MAX_RETRIES` | `1` | Retry count on failure |
+
+### API Keys
+
+| Variable | Provider | Get Key |
+|----------|----------|---------|
+| `GROQ_API_KEY` | Groq | https://console.groq.com/keys |
+| `OPENROUTER_API_KEY` | OpenRouter | https://openrouter.ai/keys |
+| `ANTHROPIC_API_KEY` | Anthropic (Claude) | https://console.anthropic.com |
+| `GOOGLE_API_KEY` | Google (Gemini) | https://makersuite.google.com/app/apikey |
+| `MOONSHOT_API_KEY` | Moonshot/Kimi | https://platform.moonshot.cn |
+
+### OpenAI-Compatible Override
+
+| Variable | Description |
+|----------|-------------|
+| `OPENAI_BASE_URL` | Custom base URL for OpenAI-compatible APIs |
+| `OPENAI_API_KEY` | API key for the custom endpoint |
+
+### Local LLM (Ollama)
+
+| Variable | Description |
+|----------|-------------|
+| `OLLAMA_BASE_URL` | Ollama server URL (include `/v1` suffix) |
+| `OLLAMA_MODEL` | Model name (must be pulled first) |
+
+### Server
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GATEWAY_TOKEN` | (required) | Authentication token |
+| `PORT` | `3000` | HTTP server port |
+| `GATEWAY_PORT` | `8001` | Internal gateway port |
+
+---
+
+## Provider Failover
+
+MoltBot supports automatic failover when a provider fails. Configure in `moltbot.json`:
+
 ```json
 {
-  "status": "ok",
-  "gateway": { "status": "connected", "healthy": true },
-  "token": { "configured": true },
-  "providers": { "openai": true, "anthropic": false, ... }
+  "agents": {
+    "defaults": {
+      "model": {
+        "provider": "groq",
+        "model": "llama-3.1-8b-instant",
+        "fallbacks": [
+          { "provider": "openrouter", "model": "meta-llama/llama-3.1-8b-instruct" },
+          { "provider": "ollama", "model": "llama3" },
+          { "provider": "anthropic", "model": "claude-3-haiku-20240307" }
+        ]
+      }
+    }
+  }
 }
 ```
 
-### Gateway Health
+Failover triggers on:
+- Request timeout (stuck requests)
+- Rate limiting (429)
+- Auth errors (401)
+- Server errors (5xx)
+
+---
+
+## Troubleshooting
+
+### "Stuck writing" / infinite spinner
+
+**Cause:** Streaming enabled with incompatible provider.
+
+**Fix:**
+```env
+LLM_STREAMING=false
+```
+
+### "Missing API key" error
+
+**Cause:** Provider selected but no API key configured.
+
+**Fix:** Add the corresponding API key for your provider.
+
+### "Request timed out"
+
+**Cause:** Model too slow or network issues.
+
+**Fix:**
+1. Try a faster model (e.g., `llama-3.1-8b-instant`)
+2. Increase timeout: `LLM_REQUEST_TIMEOUT_MS=30000`
+3. Check provider status at https://status.groq.com or OpenRouter status
+
+### "Model not found"
+
+**Cause:** Invalid model ID for the provider.
+
+**Fix:** Check the model ID matches exactly. Model IDs are case-sensitive.
+
+### Ollama not connecting
+
+**Cause:** Ollama server unreachable from container.
+
+**Fix:**
+1. Ensure Ollama is running: `ollama serve`
+2. Use correct URL with `/v1` suffix
+3. If in Docker, use host network or internal DNS
+
+---
+
+## Testing Provider Configuration
+
+Use the built-in provider test endpoint:
+
 ```bash
-curl https://your-app.com/gateway/health
+# Check provider status
+curl -X POST http://localhost:8001/api/providers.status \
+  -H "Authorization: Bearer $GATEWAY_TOKEN"
+
+# Test all configured providers
+curl -X POST http://localhost:8001/api/providers.test \
+  -H "Authorization: Bearer $GATEWAY_TOKEN"
 ```
 
-Expected response:
-```json
-{ "status": "ok", "gateway": "connected" }
+Response includes:
+- Provider configuration status
+- Test results (success/fail)
+- Latency measurements
+- Error messages
+
+---
+
+## Recommended Presets
+
+### Budget Setup (Free/Cheap)
+```env
+DEFAULT_LLM_PROVIDER=groq
+DEFAULT_MODEL=llama-3.1-8b-instant
+GROQ_API_KEY=your_key
+LLM_STREAMING=false
 ```
 
-### Provider Status
-```bash
-curl https://your-app.com/api/providers/status
+### Quality Setup (Better responses)
+```env
+DEFAULT_LLM_PROVIDER=groq
+DEFAULT_MODEL=llama-3.3-70b-versatile
+GROQ_API_KEY=your_key
+LLM_STREAMING=false
 ```
 
-Shows which LLM providers are configured (without revealing keys).
-
-## Security Notes
-
-- Never commit API keys to the repository
-- Use Coolify's environment variables for all secrets
-- The `GATEWAY_TOKEN` should be at least 32 characters
-- Tokens are never logged or exposed in responses
+### Local Privacy Setup
+```env
+DEFAULT_LLM_PROVIDER=ollama
+DEFAULT_MODEL=llama3
+OLLAMA_BASE_URL=http://localhost:11434/v1
+OLLAMA_MODEL=llama3
+LLM_STREAMING=false
+LLM_REQUEST_TIMEOUT_MS=30000
+```
