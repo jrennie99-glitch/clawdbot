@@ -7,6 +7,14 @@ import { isStreamingDisabled, getProviderMaxTokens } from "../llm-config.js";
 import { log } from "./logger.js";
 
 /**
+ * Extended SimpleStreamOptions with stream flag for runtime control.
+ * CRITICAL: External type doesn't include stream, so we extend it locally.
+ */
+type SimpleStreamOptionsWithStream = SimpleStreamOptions & { 
+  stream?: boolean;
+};
+
+/**
  * Resolve provider-specific extra params from model config.
  * Used to pass through stream params like temperature/maxTokens.
  *
