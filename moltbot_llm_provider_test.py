@@ -493,7 +493,7 @@ class MoltBotLLMProviderTestSuite:
                 }));
             } else {
                 // Test that the import actually works
-                const timeout = require('./src/agents/timeout.js');
+                const timeout = require('./dist/agents/timeout.js');
                 console.log(JSON.stringify({
                     success: true,
                     details: 'DEFAULT_LLM_TIMEOUT_MS imported and timeout module loads correctly'
