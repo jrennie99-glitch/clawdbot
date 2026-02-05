@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-02-05T10:24:06.035240",
+  "summary": {
+    "tests_run": 17,
+    "tests_passed": 17,
+    "tests_failed": 0,
+    "success_rate": 100.0
+  },
+  "failed_tests": [],
+  "detailed_results": {
+    "firewall_source_file_exists": {
+      "status": "PASSED",
+      "details": "File exists at /app/src/security/firewall.ts"
+    },
+    "gateway_protection_source_file_exists": {
+      "status": "PASSED",
+      "details": "File exists at /app/src/security/gateway-protection.ts"
+    },
+    "lockdown_mode_source_file_exists": {
+      "status": "PASSED",
+      "details": "File exists at /app/src/security/lockdown-mode.ts"
+    },
+    "dashboard_handlers_source_file_exists": {
+      "status": "PASSED",
+      "details": "File exists at /app/src/security/integration/dashboard-handlers.ts"
+    },
+    "firewall_compiled_file_exists": {
+      "status": "PASSED",
+      "details": "File exists at /app/dist/security/firewall.js"
+    },
+    "gateway_protection_compiled_file_exists": {
+      "status": "PASSED",
+      "details": "File exists at /app/dist/security/gateway-protection.js"
+    },
+    "lockdown_mode_compiled_file_exists": {
+      "status": "PASSED",
+      "details": "File exists at /app/dist/security/lockdown-mode.js"
+    },
+    "dashboard_handlers_compiled_file_exists": {
+      "status": "PASSED",
+      "details": "File exists at /app/dist/security/integration/dashboard-handlers.js"
+    },
+    "firewall_exports_all_required_functions": {
+      "status": "PASSED",
+      "details": "All 17 terms found"
+    },
+    "gateway_protection_exports_all_required_functions": {
+      "status": "PASSED",
+      "details": "All 6 terms found"
+    },
+    "lockdown_mode_exports_all_required_functions": {
+      "status": "PASSED",
+      "details": "All 7 terms found"
+    },
+    "dashboard_handlers_exports_all_required_handlers": {
+      "status": "PASSED",
+      "details": "All 9 terms found"
+    },
+    "server_methods_imports_and_includes_security_handlers": {
+      "status": "PASSED",
+      "details": "All 2 terms found"
+    },
+    "server_methods_list_includes_all_security_methods": {
+      "status": "PASSED",
+      "details": "All 8 terms found"
+    },
+    "env.example_contains_security_variables": {
+      "status": "PASSED",
+      "details": "All 6 terms found"
+    },
+    "deploy_coolify.md_contains_security_documentation": {
+      "status": "PASSED",
+      "details": "All 4 terms found"
+    },
+    "changelog.md_contains_security_entry": {
+      "status": "PASSED",
+      "details": "All 4 terms found"
+    }
+  }
+}
