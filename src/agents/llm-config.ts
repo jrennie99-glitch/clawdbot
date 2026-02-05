@@ -87,8 +87,34 @@ export function getProviderBaseUrl(provider: string): string | undefined {
 }
 
 /**
- * Get API key for a provider
+ * Get max_tokens limit for a provider
+ * CRITICAL: Enforces hard limits to prevent infinite generation
  */
+export function getProviderMaxTokens(provider: string): number {
+  const normalized = provider.toLowerCase().trim();
+  
+  switch (normalized) {
+    case "groq":
+      return MAX_TOKENS_GROQ;
+    case "openrouter":
+      return MAX_TOKENS_OPENROUTER;
+    case "ollama":
+      return MAX_TOKENS_OLLAMA;
+    case "anthropic":
+      return MAX_TOKENS_CLAUDE;
+    default:
+      return MAX_TOKENS_DEFAULT;
+  }
+}
+
+/**
+ * Check if streaming should be disabled for this provider
+ * CRITICAL: Streaming causes hanging on cheap models
+ */
+export function isStreamingDisabled(provider: string): boolean {
+  const normalized = provider.toLowerCase().trim();
+  return STREAMING_DISABLED_PROVIDERS.has(normalized);
+}
 export function getProviderApiKey(provider: string): string | undefined {
   const normalized = provider.toLowerCase().trim();
   
