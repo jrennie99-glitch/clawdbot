@@ -39,6 +39,7 @@ RUN pnpm ui:build
 RUN mkdir -p /var/log/supervisor /root/.moltbot
 
 # Copy supervisor and server configs
+COPY docker/supervisord-main.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/moltbot.conf
 COPY docker/start-gateway.sh /app/docker/start-gateway.sh
 COPY docker/moltbot.json /root/.moltbot/moltbot.json
