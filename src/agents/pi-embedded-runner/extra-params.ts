@@ -3,7 +3,7 @@ import type { Api, Model, SimpleStreamOptions } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
 
 import type { MoltbotConfig } from "../../config/config.js";
-import { isStreamingDisabled } from "../llm-config.js";
+import { isStreamingDisabled, getProviderMaxTokens } from "../llm-config.js";
 import { log } from "./logger.js";
 
 /**
