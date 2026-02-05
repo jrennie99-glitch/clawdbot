@@ -282,30 +282,39 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
         }),
     });
   } catch (err) {
+    // CRITICAL: Log error with full stack trace but continue running for healthcheck
+    console.error("[gateway] Failed to start (full error):", err);
+    
     if (
       err instanceof GatewayLockError ||
       (err && typeof err === "object" && (err as { name?: string }).name === "GatewayLockError")
     ) {
       const errMessage = describeUnknownError(err);
-      defaultRuntime.error(
+      gatewayLog.error(
         `Gateway failed to start: ${errMessage}\nIf the gateway is supervised, stop it with: ${formatCliCommand("moltbot gateway stop")}`,
       );
       try {
         const diagnostics = await inspectPortUsage(port);
         if (diagnostics.status === "busy") {
           for (const line of formatPortDiagnostics(diagnostics)) {
-            defaultRuntime.error(line);
+            gatewayLog.error(line);
           }
         }
       } catch {
         // ignore diagnostics failures
       }
       await maybeExplainGatewayServiceStop();
-      defaultRuntime.exit(1);
+      // Log error but don't exit - keep process alive for healthcheck
+      gatewayLog.error("Gateway is in ERROR state but process will remain alive for healthcheck");
+      // Keep process alive
+      await new Promise(() => {}); // Never resolves - keeps process running
       return;
     }
-    defaultRuntime.error(`Gateway failed to start: ${String(err)}`);
-    defaultRuntime.exit(1);
+    
+    gatewayLog.error(`Gateway failed to start: ${describeUnknownError(err)}`);
+    gatewayLog.error("Gateway is in DISABLED mode but process will remain alive for healthcheck");
+    // Keep process alive for healthcheck even if gateway fails
+    await new Promise(() => {}); // Never resolves - keeps process running
   }
 }
 
