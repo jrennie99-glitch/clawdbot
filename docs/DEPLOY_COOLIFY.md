@@ -255,3 +255,119 @@ OLLAMA_MODEL=llama3
 LLM_STREAMING=false
 LLM_REQUEST_TIMEOUT_MS=30000
 ```
+
+---
+
+## Security Configuration
+
+MoltBot includes a built-in cybersecurity defense system with rate limiting, firewall, and lockdown modes.
+
+### Basic Security Setup
+
+```env
+# Enable firewall (default: true)
+SECURITY_FIREWALL=true
+
+# Rate limits
+RATE_LIMIT_API_PER_MINUTE=60
+RATE_LIMIT_LOGIN_PER_HOUR=5
+RATE_LIMIT_WS_PER_IP=3
+
+# Auto-block abusive IPs for 30 minutes
+AUTO_BLOCK_DURATION_MS=1800000
+MAX_FAILED_AUTH_ATTEMPTS=5
+```
+
+### Gateway Protection
+
+For additional gateway security:
+
+```env
+# Require password + token for WebSocket connections
+GATEWAY_PASSWORD_REQUIRED=true
+GATEWAY_PASSWORD=your-secure-password
+
+# Limit total connections
+GATEWAY_MAX_CONNECTIONS=100
+```
+
+### Lockdown Mode
+
+Enable lockdown when under attack or for maintenance:
+
+```env
+# Admin-only access
+SECURITY_LOCKDOWN=true
+SECURITY_ADMIN_EMAIL=admin@example.com
+SECURITY_ADMIN_ONLY=true
+
+# Disable specific features
+SECURITY_CHAT_DISABLED=true
+SECURITY_TOOLS_DISABLED=true
+```
+
+### Emergency Mode
+
+For immediate complete lockdown:
+
+```env
+SECURITY_EMERGENCY=true
+```
+
+This disables all features except admin access.
+
+### Kill Switch
+
+Immediately disable all tool execution:
+
+```env
+KILL_SWITCH=true
+```
+
+To deactivate, you need the confirmation code:
+```env
+KILL_SWITCH_CONFIRM_CODE=your-secret-code
+```
+
+### Security Dashboard
+
+Access the security dashboard via gateway methods:
+
+```bash
+# Get security overview
+curl -X POST http://localhost:8001/api/security.dashboard \
+  -H "Authorization: Bearer $GATEWAY_TOKEN"
+
+# View blocked IPs
+curl -X POST http://localhost:8001/api/security.blocked.list \
+  -H "Authorization: Bearer $GATEWAY_TOKEN"
+
+# View security incidents
+curl -X POST http://localhost:8001/api/security.incidents.list \
+  -H "Authorization: Bearer $GATEWAY_TOKEN"
+
+# Toggle lockdown mode
+curl -X POST http://localhost:8001/api/security.lockdown.toggle \
+  -H "Authorization: Bearer $GATEWAY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"enable": true, "reason": "Maintenance"}'
+```
+
+### Security Environment Variables Reference
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SECURITY_FIREWALL` | `true` | Enable request firewall |
+| `SECURITY_STRICT_MODE` | `false` | Enable strict header validation |
+| `RATE_LIMIT_API_PER_MINUTE` | `60` | API rate limit per IP |
+| `RATE_LIMIT_LOGIN_PER_HOUR` | `5` | Login attempts per IP |
+| `RATE_LIMIT_WS_PER_IP` | `3` | WebSocket connections per IP |
+| `AUTO_BLOCK_DURATION_MS` | `1800000` | IP block duration (30 min) |
+| `MAX_FAILED_AUTH_ATTEMPTS` | `5` | Attempts before auto-block |
+| `GATEWAY_PASSWORD_REQUIRED` | `false` | Require password for gateway |
+| `GATEWAY_PASSWORD` | - | Gateway password |
+| `GATEWAY_MAX_CONNECTIONS` | `1000` | Max gateway connections |
+| `SECURITY_LOCKDOWN` | `false` | Enable lockdown mode |
+| `SECURITY_ADMIN_EMAIL` | - | Admin email for lockdown |
+| `SECURITY_EMERGENCY` | `false` | Emergency mode |
+| `KILL_SWITCH` | `false` | Disable all tools |
