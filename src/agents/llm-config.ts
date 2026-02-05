@@ -148,39 +148,54 @@ export function getLLMConfig(): LLMConfig {
       name: "groq",
       configured: isProviderConfigured("groq"),
       baseUrl: GROQ_BASE_URL,
+      maxTokens: MAX_TOKENS_GROQ,
+      streamingAllowed: false,
     },
     {
       name: "openrouter",
       configured: isProviderConfigured("openrouter"),
       baseUrl: OPENROUTER_BASE_URL,
+      maxTokens: MAX_TOKENS_OPENROUTER,
+      streamingAllowed: false,
     },
     {
       name: "ollama",
       configured: isProviderConfigured("ollama"),
       baseUrl: process.env.OLLAMA_BASE_URL?.trim() || OLLAMA_DEFAULT_BASE_URL,
       error: !process.env.OLLAMA_MODEL?.trim() ? "Missing OLLAMA_MODEL" : undefined,
+      maxTokens: MAX_TOKENS_OLLAMA,
+      streamingAllowed: false,
     },
     {
       name: "anthropic",
       configured: isProviderConfigured("anthropic"),
+      maxTokens: MAX_TOKENS_CLAUDE,
+      streamingAllowed: true, // Claude is stable with streaming
     },
     {
       name: "openai",
       configured: isProviderConfigured("openai"),
       baseUrl: process.env.OPENAI_BASE_URL?.trim(),
+      maxTokens: MAX_TOKENS_DEFAULT,
+      streamingAllowed: false,
     },
     {
       name: "google",
       configured: isProviderConfigured("google"),
+      maxTokens: MAX_TOKENS_DEFAULT,
+      streamingAllowed: false,
     },
     {
       name: "moonshot",
       configured: isProviderConfigured("moonshot"),
+      maxTokens: MAX_TOKENS_DEFAULT,
+      streamingAllowed: false,
     },
   ];
 
   return {
     timeoutMs: DEFAULT_LLM_TIMEOUT_MS,
+    connectionTimeoutMs: DEFAULT_CONNECTION_TIMEOUT_MS,
     maxRetries: DEFAULT_LLM_MAX_RETRIES,
     streaming: DEFAULT_LLM_STREAMING,
     providers,
