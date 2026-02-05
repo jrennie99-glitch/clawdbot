@@ -2,6 +2,55 @@
 
 Docs: https://docs.molt.bot
 
+## 2026.1.28-fix.2
+Status: beta.
+
+### Cybersecurity Defense System
+
+Comprehensive internal security hardening for personal/self-hosted deployments.
+
+**New Features:**
+- **Request Firewall (Mini-WAF)**: Global security middleware validating auth, origin, payload size, headers
+- **Rate Limiting**: Per-IP and per-session limits with configurable thresholds
+  - API: 60 req/min (configurable)
+  - Login: 5 attempts/hour
+  - WebSocket: 3 connections/IP
+- **Auto-blocking**: Abusive IPs automatically blocked for 30 minutes
+- **Gateway Protection**: Optional password + token requirement for WebSocket connections
+- **Attack Detection**: SQL injection, XSS, path traversal, command injection pattern detection
+- **Lockdown Mode**: Admin-only access with configurable feature restrictions
+- **Emergency Mode**: Maximum restrictions with single env var
+- **Kill Switch**: Immediately disable all tool execution
+- **Security Dashboard**: Internal-only monitoring endpoints
+
+**New Gateway Endpoints:**
+- `security.dashboard` - Complete security overview
+- `security.blocked.list` / `security.blocked.add` / `security.blocked.remove` - IP blocking
+- `security.incidents.list` - Security incident log
+- `security.gateway.connections` - Active connection monitoring
+- `security.lockdown.toggle` / `security.lockdown.status` - Lockdown control
+
+**New Environment Variables:**
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SECURITY_FIREWALL` | `true` | Enable request firewall |
+| `SECURITY_STRICT_MODE` | `false` | Enable strict validation |
+| `RATE_LIMIT_API_PER_MINUTE` | `60` | API rate limit per IP |
+| `RATE_LIMIT_LOGIN_PER_HOUR` | `5` | Login attempts per IP |
+| `RATE_LIMIT_WS_PER_IP` | `3` | WebSocket connections per IP |
+| `AUTO_BLOCK_DURATION_MS` | `1800000` | IP block duration (30 min) |
+| `MAX_FAILED_AUTH_ATTEMPTS` | `5` | Attempts before auto-block |
+| `GATEWAY_PASSWORD_REQUIRED` | `false` | Require password for gateway |
+| `GATEWAY_PASSWORD` | - | Gateway password |
+| `GATEWAY_MAX_CONNECTIONS` | `1000` | Max gateway connections |
+| `SECURITY_LOCKDOWN` | `false` | Enable lockdown mode |
+| `SECURITY_ADMIN_EMAIL` | - | Admin email for lockdown |
+| `SECURITY_EMERGENCY` | `false` | Emergency mode |
+| `KILL_SWITCH` | `false` | Disable all tools |
+
+**Documentation:**
+- Updated `docs/DEPLOY_COOLIFY.md` with security configuration guide
+
 ## 2026.1.28-fix.1
 Status: beta.
 
