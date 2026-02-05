@@ -448,7 +448,7 @@ console.log(JSON.stringify(result));
         test_code = '''
 import fs from 'fs';
 
-const serverMethodsListContent = fs.readFileSync('./src/gateway/server-methods-list.ts', 'utf8');
+const serverMethodsListContent = fs.readFileSync('/app/src/gateway/server-methods-list.ts', 'utf8');
 
 const expectedMethods = [
     'security.dashboard',
