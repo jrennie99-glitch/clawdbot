@@ -5,7 +5,7 @@
  * Validates: auth, origin, payload size, headers, rate limits
  */
 
-import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 
 const log = createSubsystemLogger("security").child("firewall");
 
