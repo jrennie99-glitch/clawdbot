@@ -47,9 +47,10 @@ ENV NODE_ENV=production
 # Expose default port (Coolify overrides via PORT)
 EXPOSE 3000
 
-# Health check
+# Health check - uses /healthz which works even if gateway is disabled
+# CRITICAL: This must not depend on gateway auth or LLM providers
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-3000}/health || exit 1
+    CMD curl -fsS http://127.0.0.1:${PORT:-3000}/healthz || exit 1
 
 # Start supervisor (manages both gateway and UI server)
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
