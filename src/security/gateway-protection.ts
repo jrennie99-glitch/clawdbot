@@ -7,7 +7,7 @@
  * - Logs all auth failures
  */
 
-import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 import {
   isIpBlocked,
   blockIp,
