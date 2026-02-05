@@ -184,6 +184,7 @@ type ProviderStatus = {
 };
 
 const providerStatus: Record<LLMProvider, ProviderStatus> = {
+  groq: { available: false, lastCheck: new Date(0) },
   moonshot: { available: false, lastCheck: new Date(0) },
   openrouter: { available: false, lastCheck: new Date(0) },
   ollama: { available: false, lastCheck: new Date(0) },
