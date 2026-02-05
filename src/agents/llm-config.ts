@@ -29,10 +29,13 @@ export type LLMProviderStatus = {
   configured: boolean;
   baseUrl?: string;
   error?: string;
+  maxTokens?: number;
+  streamingAllowed?: boolean;
 };
 
 export type LLMConfig = {
   timeoutMs: number;
+  connectionTimeoutMs: number;
   maxRetries: number;
   streaming: boolean;
   providers: LLMProviderStatus[];
