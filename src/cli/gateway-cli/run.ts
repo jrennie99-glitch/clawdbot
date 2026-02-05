@@ -175,7 +175,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     // CRITICAL: Don't exit - continue in disabled mode
   }
   const bindRaw = toOptionString(opts.bind) ?? cfg.gateway?.bind ?? "loopback";
-  const bind =
+  let bind =
     bindRaw === "loopback" ||
     bindRaw === "lan" ||
     bindRaw === "auto" ||
