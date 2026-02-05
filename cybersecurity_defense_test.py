@@ -246,7 +246,7 @@ import {
     deactivateLockdown,
     isAdminUser,
     checkLockdownAccess
-} from './src/security/lockdown-mode.js';
+} from './dist/security/lockdown-mode.js';
 
 const result = {
     success: true,
