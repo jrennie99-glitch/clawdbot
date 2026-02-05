@@ -2,6 +2,47 @@
 
 Docs: https://docs.molt.bot
 
+## 2026.1.28-fix.1
+Status: beta.
+
+### LLM Provider Reliability Fix (Groq/OpenRouter/Ollama)
+
+This release fixes the "stuck writing" bug when using cheaper/open-source LLM providers.
+
+**Breaking Changes:**
+- Default provider changed from `anthropic` to `groq` (use `DEFAULT_LLM_PROVIDER=anthropic` to restore)
+- Default timeout reduced from 600s to 15s (use `LLM_REQUEST_TIMEOUT_MS` to adjust)
+- Streaming disabled by default (use `LLM_STREAMING=true` to enable)
+
+**New Features:**
+- **Provider Status Panel**: Check which providers are configured (`providers.status` endpoint)
+- **Model Testing**: Test configured providers with latency measurement (`providers.test` endpoint)
+- **Hard Request Timeouts**: Configurable via `LLM_REQUEST_TIMEOUT_MS` (default: 15000ms)
+- **Non-streaming Mode**: `LLM_STREAMING=false` prevents stuck requests with Groq/OpenRouter/Ollama
+- **OpenAI-Compatible Routing**: Use `OPENAI_BASE_URL` to point to any compatible API (Groq, OpenRouter, vLLM, etc.)
+- **Provider Failover**: Automatic fallback when primary provider fails (timeout, rate limit, auth error)
+- **User-friendly Errors**: Clear error messages with provider name and failure reason
+
+**New Environment Variables:**
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEFAULT_LLM_PROVIDER` | `groq` | Primary LLM provider |
+| `DEFAULT_MODEL` | `llama-3.1-8b-instant` | Model to use |
+| `LLM_STREAMING` | `false` | Streaming mode (keep false for reliability) |
+| `LLM_REQUEST_TIMEOUT_MS` | `15000` | Request timeout in ms |
+| `LLM_MAX_RETRIES` | `1` | Retry count on failure |
+| `GROQ_API_KEY` | - | Groq API key |
+| `OPENROUTER_API_KEY` | - | OpenRouter API key |
+| `OLLAMA_BASE_URL` | - | Ollama server URL |
+| `OLLAMA_MODEL` | - | Ollama model name |
+
+**Tested Presets:**
+- **Groq**: `OPENAI_BASE_URL=https://api.groq.com/openai/v1` with `OPENAI_API_KEY=gsk_xxx`
+- **OpenRouter**: `OPENAI_BASE_URL=https://openrouter.ai/api/v1` with `OPENAI_API_KEY=sk-or-v1-xxx`
+
+**Documentation:**
+- Added `docs/DEPLOY_COOLIFY.md` with full deployment guide and presets
+
 ## 2026.1.27-beta.1
 Status: beta.
 
