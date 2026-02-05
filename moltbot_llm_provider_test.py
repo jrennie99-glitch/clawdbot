@@ -233,7 +233,7 @@ class MoltBotLLMProviderTestSuite:
         
         test_code = """
         try {
-            const providers = require('./src/gateway/server-methods/providers.js');
+            const providers = require('./dist/gateway/server-methods/providers.js');
             
             if (!providers.providersHandlers) {
                 console.log(JSON.stringify({
