@@ -217,17 +217,18 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     );
   }
   if (resolvedAuthMode === "token" && !hasToken && !resolvedAuth.allowTailscale) {
-    defaultRuntime.error(
+    // CRITICAL: Log warning but don't exit - run in disabled mode
+    gatewayLog.warn(
       [
         "Gateway auth is set to token, but no token is configured.",
-        "Set gateway.auth.token (or CLAWDBOT_GATEWAY_TOKEN), or pass --token.",
+        "Gateway will run in DISABLED mode (no WebSocket connections accepted).",
+        "To enable: Set gateway.auth.token, CLAWDBOT_GATEWAY_TOKEN, or pass --token.",
         ...authHints,
       ]
         .filter(Boolean)
         .join("\n"),
     );
-    defaultRuntime.exit(1);
-    return;
+    // Continue running instead of exit(1)
   }
   if (resolvedAuthMode === "password" && !hasPassword) {
     // CRITICAL: Log warning but don't exit - run in disabled mode
