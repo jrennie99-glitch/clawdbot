@@ -287,6 +287,16 @@ export function createGatewayHttpServer(opts: {
         )
           return;
       }
+      
+      // CRITICAL: Health check endpoint for Coolify/Docker
+      // Returns 200 even if gateway is disabled or LLM providers are unavailable
+      const url = new URL(req.url ?? "/", `http://${bindHost}:${port}`);
+      if (url.pathname === "/healthz" || url.pathname === "/health") {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json; charset=utf-8");
+        res.end(JSON.stringify({ status: "ok", timestamp: Date.now() }));
+        return;
+      }
 
       res.statusCode = 404;
       res.setHeader("Content-Type", "text/plain; charset=utf-8");
