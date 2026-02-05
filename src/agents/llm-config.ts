@@ -145,17 +145,17 @@ export function getProviderApiKey(provider: string): string | undefined {
 export function getLLMConfig(): LLMConfig {
   const providers: LLMProviderStatus[] = [
     {
-      name: "groq",
-      configured: isProviderConfigured("groq"),
-      baseUrl: GROQ_BASE_URL,
-      maxTokens: MAX_TOKENS_GROQ,
-      streamingAllowed: false,
-    },
-    {
       name: "openrouter",
       configured: isProviderConfigured("openrouter"),
       baseUrl: OPENROUTER_BASE_URL,
       maxTokens: MAX_TOKENS_OPENROUTER,
+      streamingAllowed: false,
+    },
+    {
+      name: "groq",
+      configured: isProviderConfigured("groq"),
+      baseUrl: GROQ_BASE_URL,
+      maxTokens: MAX_TOKENS_GROQ,
       streamingAllowed: false,
     },
     {
