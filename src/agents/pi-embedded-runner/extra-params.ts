@@ -56,7 +56,7 @@ function createStreamFnWithExtraParams(
   // CRITICAL: Get hard max_tokens limit for this provider
   const providerMaxTokens = getProviderMaxTokens(provider);
   
-  const streamParams: Partial<SimpleStreamOptions> & { cacheControlTtl?: CacheControlTtl } = {};
+  const streamParams: Partial<SimpleStreamOptionsWithStream> & { cacheControlTtl?: CacheControlTtl } = {};
   
   // Extract extra params
   if (extraParams && Object.keys(extraParams).length > 0) {
@@ -81,7 +81,7 @@ function createStreamFnWithExtraParams(
   // CRITICAL: Force-disable streaming for problematic providers
   if (forceDisableStreaming) {
     log.debug(`Force-disabling streaming for provider: ${provider}`);
-    (streamParams as SimpleStreamOptions).stream = false;
+    streamParams.stream = false;
   }
 
   if (Object.keys(streamParams).length === 0) {
@@ -91,14 +91,21 @@ function createStreamFnWithExtraParams(
   log.debug(`creating streamFn wrapper with params: ${JSON.stringify(streamParams)}`);
 
   const underlying = baseStreamFn ?? streamSimple;
-  const wrappedStreamFn: StreamFn = (model, context, options) =>
-    underlying(model as Model<Api>, context, {
+  const wrappedStreamFn: StreamFn = (model, context, options) => {
+    const mergedOptions = {
       ...streamParams,
       ...options,
       // CRITICAL: Ensure these cannot be overridden
       maxTokens: streamParams.maxTokens,
-      ...(forceDisableStreaming ? { stream: false } : {}),
-    });
+    } as SimpleStreamOptionsWithStream;
+    
+    // CRITICAL: Force streaming off for problematic providers
+    if (forceDisableStreaming) {
+      mergedOptions.stream = false;
+    }
+    
+    return underlying(model as Model<Api>, context, mergedOptions);
+  };
 
   return wrappedStreamFn;
 }
