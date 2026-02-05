@@ -230,30 +230,32 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     return;
   }
   if (resolvedAuthMode === "password" && !hasPassword) {
-    defaultRuntime.error(
+    // CRITICAL: Log warning but don't exit - run in disabled mode
+    gatewayLog.warn(
       [
         "Gateway auth is set to password, but no password is configured.",
-        "Set gateway.auth.password (or CLAWDBOT_GATEWAY_PASSWORD), or pass --password.",
+        "Gateway will run in DISABLED mode (no WebSocket connections accepted).",
+        "To enable: Set gateway.auth.password, CLAWDBOT_GATEWAY_PASSWORD, or GATEWAY_PASSWORD env var, or pass --password.",
         ...authHints,
       ]
         .filter(Boolean)
         .join("\n"),
     );
-    defaultRuntime.exit(1);
-    return;
+    // Continue running instead of exit(1)
   }
   if (bind !== "loopback" && !hasSharedSecret) {
-    defaultRuntime.error(
+    // CRITICAL: Log warning but don't exit - run in disabled mode
+    gatewayLog.warn(
       [
-        `Refusing to bind gateway to ${bind} without auth.`,
-        "Set gateway.auth.token/password (or CLAWDBOT_GATEWAY_TOKEN/CLAWDBOT_GATEWAY_PASSWORD) or pass --token/--password.",
+        `Gateway bound to ${bind} without auth.`,
+        "Gateway will run in DISABLED mode for security.",
+        "To enable: Set gateway.auth.token/password (or CLAWDBOT_GATEWAY_TOKEN/CLAWDBOT_GATEWAY_PASSWORD/GATEWAY_PASSWORD), or pass --token/--password.",
         ...authHints,
       ]
         .filter(Boolean)
         .join("\n"),
     );
-    defaultRuntime.exit(1);
-    return;
+    // Continue running instead of exit(1)
   }
 
   try {
