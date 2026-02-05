@@ -190,6 +190,7 @@ export type RedactionResult = {
 // ============================================================================
 
 export type LLMProvider = 
+  | 'groq'
   | 'moonshot'
   | 'openrouter'
   | 'ollama'
