@@ -669,7 +669,7 @@ import {
     validateHeaders,
     validatePayloadSize,
     validateUrlLength
-} from './src/security/firewall.js';
+} from './dist/security/firewall.js';
 
 // Test IP blocking
 const testIp = "192.168.1.100";
