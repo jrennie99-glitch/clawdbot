@@ -45,31 +45,29 @@ function createStreamFnWithExtraParams(
   // CRITICAL: Force-disable streaming for providers that cause hanging
   const forceDisableStreaming = isStreamingDisabled(provider);
   
-  if (!extraParams || Object.keys(extraParams).length === 0) {
-    // Even with no extra params, we may need to disable streaming
-    if (forceDisableStreaming) {
-      log.debug(`Force-disabling streaming for provider: ${provider}`);
-      const underlying = baseStreamFn ?? streamSimple;
-      const wrappedStreamFn: StreamFn = (model, context, options) =>
-        underlying(model as Model<Api>, context, {
-          ...options,
-          stream: false, // CRITICAL: Force streaming off
-        });
-      return wrappedStreamFn;
-    }
-    return undefined;
-  }
-
+  // CRITICAL: Get hard max_tokens limit for this provider
+  const providerMaxTokens = getProviderMaxTokens(provider);
+  
   const streamParams: Partial<SimpleStreamOptions> & { cacheControlTtl?: CacheControlTtl } = {};
-  if (typeof extraParams.temperature === "number") {
-    streamParams.temperature = extraParams.temperature;
+  
+  // Extract extra params
+  if (extraParams && Object.keys(extraParams).length > 0) {
+    if (typeof extraParams.temperature === "number") {
+      streamParams.temperature = extraParams.temperature;
+    }
+    if (typeof extraParams.maxTokens === "number") {
+      streamParams.maxTokens = extraParams.maxTokens;
+    }
+    const cacheControlTtl = resolveCacheControlTtl(extraParams, provider, modelId);
+    if (cacheControlTtl) {
+      streamParams.cacheControlTtl = cacheControlTtl;
+    }
   }
-  if (typeof extraParams.maxTokens === "number") {
-    streamParams.maxTokens = extraParams.maxTokens;
-  }
-  const cacheControlTtl = resolveCacheControlTtl(extraParams, provider, modelId);
-  if (cacheControlTtl) {
-    streamParams.cacheControlTtl = cacheControlTtl;
+  
+  // CRITICAL: Enforce hard max_tokens limit (prevent infinite generation)
+  if (!streamParams.maxTokens || streamParams.maxTokens > providerMaxTokens) {
+    log.debug(`Enforcing max_tokens=${providerMaxTokens} for provider: ${provider}`);
+    streamParams.maxTokens = providerMaxTokens;
   }
   
   // CRITICAL: Force-disable streaming for problematic providers
@@ -78,7 +76,7 @@ function createStreamFnWithExtraParams(
     (streamParams as SimpleStreamOptions).stream = false;
   }
 
-  if (Object.keys(streamParams).length === 0 && !forceDisableStreaming) {
+  if (Object.keys(streamParams).length === 0) {
     return undefined;
   }
 
@@ -89,6 +87,9 @@ function createStreamFnWithExtraParams(
     underlying(model as Model<Api>, context, {
       ...streamParams,
       ...options,
+      // CRITICAL: Ensure these cannot be overridden
+      maxTokens: streamParams.maxTokens,
+      ...(forceDisableStreaming ? { stream: false } : {}),
     });
 
   return wrappedStreamFn;
