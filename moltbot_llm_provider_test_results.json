@@ -1,43 +1,56 @@
 {
-  "timestamp": "2026-02-05T09:57:13.404360",
+  "timestamp": "2026-02-05T09:59:22.505993",
   "test_suite": "MoltBot LLM Provider Reliability",
   "summary": {
     "tests_run": 9,
-    "tests_passed": 4,
-    "tests_failed": 5,
-    "success_rate": 44.44444444444444
+    "tests_passed": 9,
+    "tests_failed": 0,
+    "success_rate": 100.0
   },
-  "failed_tests": [
-    "defaults.ts exports",
-    "llm-config.ts exports",
-    "providers.ts handlers",
-    "server-methods.ts integration",
-    "timeout.ts imports"
-  ],
+  "failed_tests": [],
   "detailed_results": {
     "defaults_exports": {
-      "status": "FAILED",
-      "error": "Cannot find module './src/agents/defaults.js'\nRequire stack:\n- /app/[eval]"
+      "status": "PASSED",
+      "exports": {
+        "DEFAULT_LLM_TIMEOUT_MS": 15000,
+        "DEFAULT_LLM_STREAMING": true,
+        "DEFAULT_PROVIDER": "groq"
+      },
+      "details": "All required exports found"
     },
     "llm_config_exports": {
-      "status": "FAILED",
-      "error": "Cannot find module './src/agents/llm-config.js'\nRequire stack:\n- /app/[eval]"
+      "status": "PASSED",
+      "exports": {
+        "getLLMConfig": "function",
+        "isProviderConfigured": "function",
+        "formatProviderError": "function"
+      },
+      "testResults": {
+        "getLLMConfig": true,
+        "isProviderConfigured": true,
+        "formatProviderError": true
+      },
+      "details": "All required functions exported and working"
     },
     "providers_handlers": {
-      "status": "FAILED",
-      "error": "Cannot find module './src/gateway/server-methods/providers.js'\nRequire stack:\n- /app/[eval]"
+      "status": "PASSED",
+      "methods": [
+        "providers.status",
+        "providers.test"
+      ],
+      "details": "All required handler methods found"
     },
     "server_methods_integration": {
-      "status": "FAILED",
-      "error": "Cannot find module './src/gateway/server-methods.js'\nRequire stack:\n- /app/[eval]"
+      "status": "PASSED",
+      "details": "Provider methods integrated into coreGatewayHandlers"
     },
     "server_methods_list": {
       "status": "PASSED",
       "details": "Provider methods found in BASE_METHODS"
     },
     "timeout_imports": {
-      "status": "FAILED",
-      "error": "Cannot find module './src/agents/timeout.js'\nRequire stack:\n- /app/[eval]"
+      "status": "PASSED",
+      "details": "DEFAULT_LLM_TIMEOUT_MS imported and timeout module loads correctly"
     },
     "moltbot_json_validity": {
       "status": "PASSED",
