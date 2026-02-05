@@ -235,7 +235,7 @@ export function updateProviderStatus(provider: LLMProvider, available: boolean, 
  * Gets all available providers.
  */
 export function getAvailableProviders(): LLMProvider[] {
-  const providers: LLMProvider[] = ['moonshot', 'openrouter', 'ollama', 'vllm', 'anthropic', 'openai', 'google'];
+  const providers: LLMProvider[] = ['groq', 'moonshot', 'openrouter', 'ollama', 'vllm', 'anthropic', 'openai', 'google'];
   return providers.filter(p => isProviderAvailable(p));
 }
 
