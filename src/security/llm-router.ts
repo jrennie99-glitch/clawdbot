@@ -152,7 +152,7 @@ const FALLBACK_CHAIN: Record<LLMTier, LLMTier[]> = {
   smart: ['fast', 'cheap'],
   fast: ['cheap', 'smart'],
   cheap: ['fast'],
-  long_context: ['smart', 'fast'],
+  long_context: ['fast', 'cheap'],
 };
 
 // ============================================================================
