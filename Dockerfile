@@ -40,7 +40,11 @@ RUN mkdir -p /var/log/supervisor /root/.moltbot
 
 # Copy supervisor and server configs
 COPY docker/supervisord.conf /etc/supervisor/conf.d/moltbot.conf
+COPY docker/start-gateway.sh /app/docker/start-gateway.sh
 COPY docker/moltbot.json /root/.moltbot/moltbot.json
+
+# Make startup script executable
+RUN chmod +x /app/docker/start-gateway.sh
 
 ENV NODE_ENV=production
 
