@@ -133,7 +133,7 @@ class MoltBotLLMProviderTestSuite:
         
         test_code = """
         try {
-            const llmConfig = require('./src/agents/llm-config.js');
+            const llmConfig = require('./dist/agents/llm-config.js');
             
             const requiredExports = [
                 'getLLMConfig',
