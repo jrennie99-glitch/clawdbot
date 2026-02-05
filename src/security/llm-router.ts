@@ -376,7 +376,7 @@ export function getModelsByProvider(provider: LLMProvider): LLMModelConfig[] {
  * SECURITY: System MUST be able to run without Claude.
  */
 export function canRunWithoutClaude(): boolean {
-  const nonClaudeProviders: LLMProvider[] = ['moonshot', 'openrouter', 'ollama', 'vllm', 'openai', 'google'];
+  const nonClaudeProviders: LLMProvider[] = ['groq', 'moonshot', 'openrouter', 'ollama', 'vllm', 'openai', 'google'];
   return nonClaudeProviders.some(p => isProviderAvailable(p));
 }
 
