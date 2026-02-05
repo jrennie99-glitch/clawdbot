@@ -423,6 +423,14 @@ export type ProviderConfig = {
  */
 export function getProviderConfig(provider: LLMProvider): ProviderConfig | null {
   switch (provider) {
+    case 'groq':
+      const groqKey = process.env.GROQ_API_KEY ?? process.env.OPENAI_API_KEY;
+      if (!groqKey) return null;
+      return {
+        baseUrl: 'https://api.groq.com/openai/v1',
+        apiKey: groqKey,
+      };
+      
     case 'moonshot':
       if (!process.env.MOONSHOT_API_KEY) return null;
       return {
