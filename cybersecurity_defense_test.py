@@ -316,7 +316,7 @@ console.log(JSON.stringify(result));
         self.tests_run += 1
         
         test_code = '''
-import { securityDashboardHandlers } from './dist/security/integration/dashboard-handlers.js';
+import { securityDashboardHandlers } from '/app/dist/security/integration/dashboard-handlers.js';
 
 const result = {
     success: true,
