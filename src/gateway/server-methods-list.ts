@@ -82,6 +82,9 @@ const BASE_METHODS = [
   "chat.history",
   "chat.abort",
   "chat.send",
+  // Provider status and testing
+  "providers.status",
+  "providers.test",
 ];
 
 export function listGatewayMethods(): string[] {
