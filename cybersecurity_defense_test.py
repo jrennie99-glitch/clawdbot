@@ -79,7 +79,7 @@ import {
     logSecurityIncident, 
     getSecurityLog, 
     getSecurityStats 
-} from './src/security/firewall.js';
+} from './dist/security/firewall.js';
 
 const result = {
     success: true,
