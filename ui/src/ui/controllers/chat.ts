@@ -55,6 +55,7 @@ export async function sendChatMessage(
   state: ChatState,
   message: string,
   attachments?: ChatAttachment[],
+  model?: string | null,
 ): Promise<boolean> {
   if (!state.client || !state.connected) return false;
   const msg = message.trim();
@@ -110,13 +111,20 @@ export async function sendChatMessage(
     : undefined;
 
   try {
-    await state.client.request("chat.send", {
+    const requestPayload: any = {
       sessionKey: state.sessionKey,
       message: msg,
       deliver: false,
       idempotencyKey: runId,
       attachments: apiAttachments,
-    });
+    };
+    
+    // Add model override if specified
+    if (model) {
+      requestPayload.model = model;
+    }
+    
+    await state.client.request("chat.send", requestPayload);
     return true;
   } catch (err) {
     const error = String(err);

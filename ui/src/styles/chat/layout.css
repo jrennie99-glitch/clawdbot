@@ -111,6 +111,24 @@
   z-index: 10;
 }
 
+/* Model selector */
+.chat-compose__model-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-compose__model-selector .field {
+  margin: 0;
+  flex: 0 0 auto;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.chat-compose__model-selector select {
+  font-size: 14px;
+}
+
 /* Image attachments preview */
 .chat-attachments {
   display: inline-flex;

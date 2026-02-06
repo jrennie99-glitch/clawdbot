@@ -56,6 +56,10 @@ export type ChatProps = {
   // Image attachments
   attachments?: ChatAttachment[];
   onAttachmentsChange?: (attachments: ChatAttachment[]) => void;
+  // Model selection
+  selectedModel?: string | null;
+  availableModels?: Array<{id: string; name: string}>;
+  onModelChange?: (model: string) => void;
   // Event handlers
   onRefresh: () => void;
   onToggleFocusMode: () => void;
@@ -329,6 +333,30 @@ export function renderChat(props: ChatProps) {
 
       <div class="chat-compose">
         ${renderAttachmentPreview(props)}
+        ${props.availableModels && props.availableModels.length > 0 && props.onModelChange
+          ? html`
+            <div class="chat-compose__model-selector">
+              <label class="field">
+                <span>Model</span>
+                <select 
+                  .value=${props.selectedModel || ""}
+                  @change=${(e: Event) => {
+                    const target = e.target as HTMLSelectElement;
+                    props.onModelChange!(target.value);
+                  }}
+                  ?disabled=${!props.connected}
+                >
+                  <option value="">Auto (Default)</option>
+                  ${props.availableModels.map(model => html`
+                    <option value=${model.id} ?selected=${props.selectedModel === model.id}>
+                      ${model.name}
+                    </option>
+                  `)}
+                </select>
+              </label>
+            </div>
+          `
+          : nothing}
         <div class="chat-compose__row">
           <label class="field chat-compose__field">
             <span>Message</span>

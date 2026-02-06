@@ -481,6 +481,14 @@ export function renderApp(state: AppViewState) {
               onDraftChange: (next) => (state.chatMessage = next),
               attachments: state.chatAttachments,
               onAttachmentsChange: (next) => (state.chatAttachments = next),
+              selectedModel: state.chatSelectedModel,
+              availableModels: (state.debugModels || []).map((m: any) => ({
+                id: m.id,
+                name: m.name || m.id
+              })),
+              onModelChange: (model: string) => {
+                state.chatSelectedModel = model || null;
+              },
               onSend: () => state.handleSendChat(),
               canAbort: Boolean(state.chatRunId),
               onAbort: () => void state.handleAbortChat(),

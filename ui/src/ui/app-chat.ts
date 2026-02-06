@@ -21,6 +21,7 @@ type ChatHost = {
   basePath: string;
   hello: GatewayHelloOk | null;
   chatAvatarUrl: string | null;
+  chatSelectedModel?: string | null;
 };
 
 export function isChatBusy(host: ChatHost) {
@@ -74,7 +75,12 @@ async function sendChatMessageNow(
   },
 ) {
   resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
-  const ok = await sendChatMessage(host as unknown as MoltbotApp, message, opts?.attachments);
+  const ok = await sendChatMessage(
+    host as unknown as MoltbotApp,
+    message,
+    opts?.attachments,
+    host.chatSelectedModel || null
+  );
   if (!ok && opts?.previousDraft != null) {
     host.chatMessage = opts.previousDraft;
   }
@@ -157,8 +163,23 @@ export async function refreshChat(host: ChatHost) {
     loadChatHistory(host as unknown as MoltbotApp),
     loadSessions(host as unknown as MoltbotApp),
     refreshChatAvatar(host),
+    loadModelsForChat(host as unknown as MoltbotApp),
   ]);
   scheduleChatScroll(host as unknown as Parameters<typeof scheduleChatScroll>[0], true);
+}
+
+async function loadModelsForChat(host: MoltbotApp) {
+  if (!host.client || !host.connected) return;
+  try {
+    const models = await host.client.request("models.list", {});
+    const modelPayload = models as { models?: unknown[] } | undefined;
+    host.debugModels = Array.isArray(modelPayload?.models)
+      ? modelPayload?.models
+      : [];
+  } catch (err) {
+    // Silent fail - models dropdown won't appear if it fails
+    console.error("Failed to load models:", err);
+  }
 }
 
 export const flushChatQueueForEvent = flushChatQueue;
