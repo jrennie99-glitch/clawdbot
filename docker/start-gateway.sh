@@ -5,7 +5,7 @@
 set +e  # Don't exit on errors
 
 # Container-safe bind defaults
-export CLAWDBOT_GATEWAY_PORT="${CLAWDBOT_GATEWAY_PORT:-8001}"
+export CLAWDBOT_GATEWAY_PORT="${CLAWDBOT_GATEWAY_PORT:-3002}"
 export CLAWDBOT_GATEWAY_BIND="${CLAWDBOT_GATEWAY_BIND:-0.0.0.0}"
 
 # Log function
@@ -44,15 +44,25 @@ max_attempts=999999  # Effectively infinite
 
 while true; do
   attempt=$((attempt + 1))
-  log "Starting gateway (attempt #$attempt)..."
+  log "Starting gateway (attempt #$attempt)..."# Start secondary gateway on 8001 (background)
+CLAWDBOT_GATEWAY_PORT=8001 node /app/moltbot.mjs gateway \
+  --port 8001 \
+  --bind "$CLAWDBOT_GATEWAY_BIND" \
+  2>&1 | while IFS= read -r line; do
+    echo "[gateway-8001] $line"
+  done &
+  CLAWDBOT_GATEWAY_PORT=3002 node /app/moltbot.mjs gateway \
+  --port 3002 \
+  --bind "$CLAWDBOT_GATEWAY_BIND" \
+  2>&1 | while IFS= read -r line; do
+    echo "[gateway-3002] $line"
+  done
   
-  # Start gateway and capture exit code
-  node /app/moltbot.mjs gateway \
-    --port "$CLAWDBOT_GATEWAY_PORT" \
-    --bind "$CLAWDBOT_GATEWAY_BIND" \
-    2>&1 | while IFS= read -r line; do
-      echo "[gateway] $line"
-    done
+  
+
+    
+     
+    
   
   exit_code=$?
   
