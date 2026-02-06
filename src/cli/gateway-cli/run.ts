@@ -1,7 +1,7 @@
 import fs from "node:fs";
 
 import type { Command } from "commander";
-import type { GatewayAuthMode } from "../../config/config.js";
+import type { GatewayAuthMode, GatewayBindMode } from "../../config/config.js";
 import {
   CONFIG_PATH,
   loadConfig,
@@ -174,15 +174,12 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     }
     // CRITICAL: Don't exit - continue in disabled mode
   }
+  // FIXED: Type-safe bind mode validation
   const bindRaw = toOptionString(opts.bind) ?? cfg.gateway?.bind ?? "loopback";
-  let bind =
-    bindRaw === "loopback" ||
-    bindRaw === "lan" ||
-    bindRaw === "auto" ||
-    bindRaw === "custom" ||
-    bindRaw === "tailnet"
-      ? bindRaw
-      : null;
+  const validBindModes: GatewayBindMode[] = ["loopback", "lan", "auto", "custom", "tailnet"];
+  let bind: GatewayBindMode | null = validBindModes.includes(bindRaw as GatewayBindMode)
+    ? (bindRaw as GatewayBindMode)
+    : null;
   if (!bind) {
     gatewayLog.warn('Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")');
     gatewayLog.warn("Using default bind: loopback");
