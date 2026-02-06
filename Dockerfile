@@ -52,9 +52,10 @@ ENV NODE_ENV=production
 # Expose ports (3002 for frontend, 8001 for gateway)
 EXPOSE 3002 8001
 
-# Health check - checks frontend only (gateway may bind to 0.0.0.0 and not respond to 127.0.0.1)
+# Health check - checks BOTH frontend and gateway
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-    CMD curl -fsS http://127.0.0.1:3002/healthz >/dev/null || exit 1
+    CMD curl -fsS http://127.0.0.1:3002/healthz >/dev/null && \
+        curl -fsS http://127.0.0.1:8001/ >/dev/null || exit 1
 
 # Start supervisor (manages both gateway and UI server)
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
