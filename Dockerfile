@@ -49,13 +49,14 @@ RUN chmod +x /app/docker/start-gateway.sh
 
 ENV NODE_ENV=production
 
-# Expose default port (Coolify overrides via PORT)
-EXPOSE 3000
+# Expose ports (3002 for frontend, 8001 for gateway)
+EXPOSE 3002 8001
 
-# Health check - checks BOTH frontend AND gateway
-# CRITICAL: Must verify both services are up
+# Health check - checks BOTH services
+# FIXED: Frontend uses /healthz (not /), Gateway uses /healthz
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-    CMD curl -fsS http://127.0.0.1:3000/ >/dev/null && curl -fsS http://127.0.0.1:8001/healthz >/dev/null || exit 1
+    CMD curl -fsS http://127.0.0.1:3002/healthz >/dev/null && \
+        curl -fsS http://127.0.0.1:8001/healthz >/dev/null || exit 1
 
 # Start supervisor (manages both gateway and UI server)
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
