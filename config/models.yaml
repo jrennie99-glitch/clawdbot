@@ -1,31 +1,51 @@
-# Clawdbot Model Configuration
-# Lead: Kimi 2.5 (Moonshot)
-# Open Source Squad: OpenRouter (Claude-free)
-
+# Clawdbot Model Configuration (Converted from your Swarm JSON)
 default_model: "kimi-k2.5"
 
-# Automatic task-based routing
 task_routing:
   default: "kimi-k2.5"
-  
+
   coding:
     primary: "deepseek/deepseek-coder"
-    fallback: "kimi-k2.5"
-    
+    fallback: "qwen/qwen-2.5-72b-instruct"
+
+  debugging:
+    primary: "deepseek/deepseek-coder"
+    fallback: "deepseek/deepseek-r1"
+
   reasoning:
-    primary: "nvidia/llama-3.1-nemotron-70b-instruct"
+    primary: "deepseek/deepseek-r1"
+    fallback: "nvidia/llama-3.1-nemotron-70b-instruct"
+
+  math:
+    primary: "deepseek/deepseek-r1"
+    fallback: "qwen/qwen-2.5-72b-instruct"
+
+  analysis:
+    primary: "meta-llama/llama-3.1-405b-instruct"
     fallback: "kimi-k2.5"
-    
+
+  summarization:
+    primary: "meta-llama/llama-3.1-405b-instruct"
+    fallback: "kimi-k2.5"
+
+  long_context:
+    primary: "kimi-k2.5"
+    fallback: "meta-llama/llama-3.1-405b-instruct"
+
   creative_writing:
     primary: "meta-llama/llama-3.3-70b-instruct"
     fallback: "kimi-k2.5"
-    
-  long_context:
-    primary: "kimi-k2.5"
-    fallback: "google/gemma-2-27b-it"
-    
+
   fast_responses:
     primary: "mistralai/mistral-7b-instruct"
+    fallback: "kimi-k2.5"
+
+  chinese:
+    primary: "kimi-k2.5"
+    fallback: "qwen/qwen-2.5-72b-instruct"
+
+  tool_use:
+    primary: "qwen/qwen-2.5-72b-instruct"
     fallback: "kimi-k2.5"
 
 providers:
@@ -37,56 +57,63 @@ providers:
       kimi-k2.5:
         id: "kimi-k2.5"
         name: "Kimi K2.5"
-        strengths: ["general", "long_context", "chinese", "reasoning"]
+        strengths: ["general", "long_context", "chinese", "reasoning", "leadership"]
         max_tokens: 8192
         context_window: 256000
-        
+
   openrouter:
     name: "OpenRouter"
     base_url: "https://openrouter.ai/api/v1"
     api_key_env: "OPENROUTER_API_KEY"
     models:
+      deepseek-r1:
+        id: "deepseek/deepseek-r1"
+        name: "DeepSeek R1"
+        strengths: ["coding", "reasoning", "math", "deep_analysis"]
+        max_tokens: 8192
+        context_window: 64000
+
       deepseek-coder:
         id: "deepseek/deepseek-coder"
         name: "DeepSeek Coder V2"
-        strengths: ["coding", "technical", "math"]
+        strengths: ["coding", "technical", "debugging", "code_review"]
         max_tokens: 8192
-        
-      nemotron-70b:
-        id: "nvidia/llama-3.1-nemotron-70b-instruct"
-        name: "Nemotron 70B"
-        strengths: ["reasoning", "math", "logic"]
-        max_tokens: 4096
-        
+        context_window: 64000
+
+      llama-3.1-405b:
+        id: "meta-llama/llama-3.1-405b-instruct"
+        name: "Llama 3.1 405B"
+        strengths: ["analysis", "knowledge", "complex_reasoning", "summarization"]
+        max_tokens: 8192
+        context_window: 128000
+
       llama-3.3-70b:
         id: "meta-llama/llama-3.3-70b-instruct"
         name: "Llama 3.3 70B"
         strengths: ["general", "creative", "instruction_following"]
         max_tokens: 8192
-        
-      gemma-2-27b:
-        id: "google/gemma-2-27b-it"
-        name: "Gemma 2 27B"
-        strengths: ["efficiency", "safety", "multilingual"]
+        context_window: 128000
+
+      qwen-2.5-72b:
+        id: "qwen/qwen-2.5-72b-instruct"
+        name: "Qwen 2.5 72B"
+        strengths: ["coding", "chinese", "math", "tool_use"]
         max_tokens: 8192
-        
+        context_window: 128000
+
+      nemotron-70b:
+        id: "nvidia/llama-3.1-nemotron-70b-instruct"
+        name: "Nemotron 70B"
+        strengths: ["reasoning", "math", "logic"]
+        max_tokens: 4096
+        context_window: 128000
+
       mistral-7b:
         id: "mistralai/mistral-7b-instruct"
         name: "Mistral 7B"
         strengths: ["speed", "simple_tasks", "low_cost"]
         max_tokens: 4096
-        
-      qwen-2.5-72b:
-        id: "qwen/qwen-2.5-72b-instruct"
-        name: "Qwen 2.5 72B"
-        strengths: ["coding", "chinese", "math"]
-        max_tokens: 8192
-        
-      mixtral-8x22b:
-        id: "mistralai/mixtral-8x22b-instruct"
-        name: "Mixtral 8x22B"
-        strengths: ["complex_reasoning", "knowledge"]
-        max_tokens: 4096
+        context_window: 32000
 
 auto_switch:
   enabled: true
