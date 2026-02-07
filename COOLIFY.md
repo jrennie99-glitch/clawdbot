@@ -12,8 +12,8 @@
 ### Network Settings
 | Setting | Value |
 |---------|-------|
-| **Exposed Port** | `8001` (UI/WebSocket) |
-| **Gateway Port** | `3002` (API) |
+| **Exposed Port** | `3002` (UI/WebSocket) |
+| **Gateway Port** | `8001` (API) |
 | **Health Check Path** | `/healthz` |
 | **Health Check Interval** | `30s` |
 
@@ -23,8 +23,8 @@ Leave empty - Dockerfile CMD handles this via supervisor.
 ### Environment Variables (Required)
 ```
 NODE_ENV=production
-PORT=8001
-GATEWAY_PORT=3002
+PORT=3002
+GATEWAY_PORT=8001
 GATEWAY_TOKEN=<generate-secure-token>
 ```
 
