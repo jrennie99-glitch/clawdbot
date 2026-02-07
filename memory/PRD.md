@@ -1,39 +1,34 @@
 # ClawdBot Coolify Deployment Fix - PRD
 
 ## Original Problem Statement
-Coolify deploy fails because Dockerfile HEALTHCHECK curls 127.0.0.1:8001 and fails. Supervisor shows frontend stays RUNNING, but gateway exits repeatedly and enters FATAL. When gateway dies, nothing listens on 8001, so healthcheck fails and Coolify rolls back.
+Coolify deploy fails because healthcheck depends on gateway which crash-loops. Need to swap ports and fix stability.
+
+## Port Configuration (UPDATED)
+- **Gateway**: Port 3002 (0.0.0.0)
+- **Frontend/UI/WebSocket**: Port 8001 (0.0.0.0)
 
 ## What's Been Implemented (Feb 2026)
 
 ### Files Changed:
-1. **Dockerfile** - Fixed HEALTHCHECK to only check frontend (port 3002) instead of both services
-2. **docker/supervisord.conf** - Set frontend PORT=3002 in environment
-3. **supervisord.conf** - Set frontend PORT=3002 in environment  
-4. **serve-ui.mjs** - Added `/healthz` minimal health endpoint
-5. **COOLIFY.md** - Updated documentation with correct port 3002
+1. **Dockerfile** - Healthcheck now uses `/healthz` on port 8001 (frontend-only)
+2. **docker/supervisord.conf** - Gateway on 3002, Frontend on 8001, gateway retries=999
+3. **docker/start-gateway.sh** - Removed `set -e`, added env validation warnings
+4. **serve-ui.mjs** - Updated default ports, changed WebSocket close codes from 1011 to 1001
+5. **supervisord.conf** - Updated ports to match
+6. **COOLIFY.md** - Updated documentation
 
 ### Key Fixes:
-- **HEALTHCHECK**: Now only checks `http://127.0.0.1:3002/health` (frontend only)
-- **Frontend Port**: Configured to listen on 3002 via supervisor environment
-- **Gateway**: Remains on port 8001, single instance via start-gateway.sh (already correct)
-- **Added /healthz endpoint**: Simple 200 OK response for basic health checks
-
-## Architecture
-- Frontend: Express server on port 3002 (serve-ui.mjs)
-- Gateway: Node.js gateway on port 8001 (moltbot.mjs)
-- Process Manager: Supervisor (manages both processes)
+- **HEALTHCHECK**: Uses `/healthz` on port 8001 (frontend) - always returns 200
+- **Gateway Retries**: Set to 999 - prevents FATAL state from killing container
+- **Env Validation**: Warns but doesn't crash on missing GATEWAY_TOKEN
+- **WebSocket 1011**: Changed to 1001 (going away) for cleaner disconnect handling
 
 ## Deployment Notes (Coolify)
-- Expose/publish port 3002 for web UI
-- Expose/publish port 8001 for gateway API (internal or public)
-- Route domain to port 3002
-- Healthcheck uses /health endpoint on frontend only
+- Expose port 8001 for Web UI / WebSocket
+- Expose port 3002 for Gateway API
+- Set GATEWAY_TOKEN in environment variables
+- Healthcheck path: `/healthz`
 
 ## Next Steps
-- Test deployment on Coolify
-- Verify gateway stability under load
-- Monitor for any remaining FATAL states in gateway
-
-## Backlog
-- P1: Add gateway healthcheck retries with backoff
-- P2: Add Prometheus metrics endpoint
+- Deploy to Coolify and verify stability
+- Monitor gateway logs for crash reasons
