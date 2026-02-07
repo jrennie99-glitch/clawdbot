@@ -340,7 +340,8 @@ wss.on("connection", (clientSocket, req) => {
 
   gatewaySocket.on("error", () => {
     if (clientSocket.readyState === WebSocket.OPEN) {
-      clientSocket.close(1011, "Gateway error");
+      // Use 1001 (going away) instead of 1011 to avoid client-side errors
+      clientSocket.close(1001, "Gateway temporarily unavailable");
     }
   });
 
@@ -360,7 +361,8 @@ wss.on("connection", (clientSocket, req) => {
 
   clientSocket.on("error", () => {
     if (gatewaySocket.readyState === WebSocket.OPEN) {
-      gatewaySocket.close(1011, "Client error");
+      // Use 1001 (going away) instead of 1011 to avoid client-side errors
+      gatewaySocket.close(1001, "Client disconnected");
     }
   });
 });
