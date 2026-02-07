@@ -68,6 +68,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Minimal healthz endpoint for Docker HEALTHCHECK (returns 200 OK if server is up)
+app.get("/healthz", (_req, res) => {
+  res.status(200).send("OK");
+});
+
 // Health endpoint - checks actual gateway connectivity
 app.get("/health", async (_req, res) => {
   let gatewayStatus = "unknown";

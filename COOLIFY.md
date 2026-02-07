@@ -12,7 +12,7 @@
 ### Network Settings
 | Setting | Value |
 |---------|-------|
-| **Exposed Port** | `3000` |
+| **Exposed Port** | `3002` |
 | **Health Check Path** | `/health` |
 | **Health Check Interval** | `30s` |
 
@@ -22,7 +22,7 @@ Leave empty - Dockerfile CMD handles this via supervisor.
 ### Environment Variables (Required)
 ```
 NODE_ENV=production
-PORT=3000
+PORT=3002
 GATEWAY_PORT=8001
 GATEWAY_TOKEN=<generate-secure-token>
 ```
