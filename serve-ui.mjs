@@ -17,16 +17,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // Configuration from environment
-const PORT = parseInt(process.env.PORT || "3000", 10);
-const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT || "8001", 10);
+// Frontend/UI on PORT (default 8001), Gateway on GATEWAY_PORT (default 3002)
+const PORT = parseInt(process.env.PORT || "8001", 10);
+const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT || "3002", 10);
 
 // CANONICAL TOKEN SOURCE: GATEWAY_TOKEN only - no fallbacks
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || "";
 
-// Validate token at startup
+// Validate token at startup - warn but don't crash to prevent container restart loops
 if (!GATEWAY_TOKEN) {
-  console.error("[FATAL] GATEWAY_TOKEN environment variable is not set.");
-  console.error("[FATAL] Set GATEWAY_TOKEN in Coolify and restart.");
+  console.warn("[WARNING] GATEWAY_TOKEN environment variable is not set.");
+  console.warn("[WARNING] Set GATEWAY_TOKEN in Coolify and restart for full functionality.");
 }
 
 // LLM Provider status (check which keys are configured)
