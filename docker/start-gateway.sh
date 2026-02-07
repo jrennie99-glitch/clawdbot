@@ -3,7 +3,7 @@
 # Do NOT add set -e as we want to handle errors gracefully
 
 export CLAWDBOT_GATEWAY_BIND="${CLAWDBOT_GATEWAY_BIND:-0.0.0.0}"
-export CLAWDBOT_GATEWAY_PORT="${CLAWDBOT_GATEWAY_PORT:-3002}"
+export CLAWDBOT_GATEWAY_PORT="${CLAWDBOT_GATEWAY_PORT:-8001}"
 
 echo "[gateway-wrapper] Starting gateway"
 echo "[gateway-wrapper] Bind: ${CLAWDBOT_GATEWAY_BIND}"

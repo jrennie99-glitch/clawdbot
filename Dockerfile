@@ -49,13 +49,13 @@ RUN chmod +x /app/docker/start-gateway.sh
 
 ENV NODE_ENV=production
 
-# Expose ports (3002 for gateway, 8001 for frontend/UI)
+# Expose ports (3002 for frontend/UI, 8001 for gateway)
 EXPOSE 3002 8001
 
-# Health check - uses /healthz on frontend (port 8001) which returns 200 OK
+# Health check - uses /healthz on frontend (port 3002) which returns 200 OK
 # Does NOT depend on gateway - prevents Coolify rollbacks during gateway restarts
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
-    CMD curl -fsS http://127.0.0.1:8001/healthz >/dev/null || exit 1
+    CMD curl -fsS http://127.0.0.1:3002/healthz >/dev/null || exit 1
 
 # Start supervisor (manages both gateway and UI server)
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

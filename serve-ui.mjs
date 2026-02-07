@@ -17,9 +17,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // Configuration from environment
-// Frontend/UI on PORT (default 8001), Gateway on GATEWAY_PORT (default 3002)
-const PORT = parseInt(process.env.PORT || "8001", 10);
-const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT || "3002", 10);
+// Frontend/UI on PORT (default 3002), Gateway on GATEWAY_PORT (default 8001)
+const PORT = parseInt(process.env.PORT || "3002", 10);
+const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT || "8001", 10);
 
 // CANONICAL TOKEN SOURCE: GATEWAY_TOKEN only - no fallbacks
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || "";
