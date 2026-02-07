@@ -3,12 +3,12 @@
     "mode": "local",
     "bind": "lan",
     "port": 8001,
-    "agentModel": "moonshot/kimi-k2.5",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true
     },
     "trustedProxies": [
+      "0.0.0.0/0",
       "127.0.0.1",
       "10.0.0.0/8",
       "172.16.0.0/12",
