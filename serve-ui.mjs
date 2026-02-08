@@ -375,16 +375,15 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`[SERVER] Gateway proxy target: ws://127.0.0.1:${GATEWAY_PORT}`);
   console.log(`[SERVER] Token configured: ${!!GATEWAY_TOKEN}`);
   
-  // Check if gateway is reachable
-  const http = require('http');
-  const checkGateway = () => {
-    const req = http.get(`http://127.0.0.1:${GATEWAY_PORT}/healthz`, (res) => {
-      console.log(`[SERVER] Gateway health check: ${res.statusCode === 200 ? 'OK' : 'UNHEALTHY'}`);
-    }).on('error', (err) => {
+  // Check if gateway is reachable (async import for ES module compatibility)
+  const checkGateway = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/healthz`);
+      console.log(`[SERVER] Gateway health check: ${response.status === 200 ? 'OK' : 'UNHEALTHY'}`);
+    } catch (err) {
       console.error(`[SERVER] Gateway NOT reachable at port ${GATEWAY_PORT}: ${err.message}`);
       console.error(`[SERVER] Make sure gateway is running. Check supervisorctl status.`);
-    });
-    req.setTimeout(5000);
+    }
   };
   setTimeout(checkGateway, 2000);
 });
