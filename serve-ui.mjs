@@ -369,21 +369,42 @@ wss.on("connection", (clientSocket, req) => {
   });
 });
 
-// Start server
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`[SERVER] MoltBot UI server listening on port ${PORT}`);
-  console.log(`[SERVER] Gateway proxy target: ws://127.0.0.1:${GATEWAY_PORT}`);
-  console.log(`[SERVER] Token configured: ${!!GATEWAY_TOKEN}`);
-  
-  // Check if gateway is reachable (async import for ES module compatibility)
-  const checkGateway = async () => {
-    try {
-      const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/healthz`);
-      console.log(`[SERVER] Gateway health check: ${response.status === 200 ? 'OK' : 'UNHEALTHY'}`);
-    } catch (err) {
-      console.error(`[SERVER] Gateway NOT reachable at port ${GATEWAY_PORT}: ${err.message}`);
-      console.error(`[SERVER] Make sure gateway is running. Check supervisorctl status.`);
-    }
-  };
-  setTimeout(checkGateway, 2000);
+// Global error handlers
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught exception:', err);
+  // Don't exit - keep server running
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] Unhandled rejection at:', promise, 'reason:', reason);
+  // Don't exit - keep server running
+});
+
+// Start server
+try {
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`[SERVER] MoltBot UI server listening on port ${PORT}`);
+    console.log(`[SERVER] Gateway proxy target: ws://127.0.0.1:${GATEWAY_PORT}`);
+    console.log(`[SERVER] Token configured: ${!!GATEWAY_TOKEN}`);
+    
+    // Check if gateway is reachable (async import for ES module compatibility)
+    const checkGateway = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:${GATEWAY_PORT}/healthz`);
+        console.log(`[SERVER] Gateway health check: ${response.status === 200 ? 'OK' : 'UNHEALTHY'}`);
+      } catch (err) {
+        console.error(`[SERVER] Gateway NOT reachable at port ${GATEWAY_PORT}: ${err.message}`);
+        console.error(`[SERVER] Make sure gateway is running. Check supervisorctl status.`);
+      }
+    };
+    setTimeout(checkGateway, 2000);
+  });
+
+  server.on('error', (err) => {
+    console.error('[SERVER] HTTP server error:', err);
+    // Don't exit - try to recover
+  });
+} catch (err) {
+  console.error('[FATAL] Failed to start server:', err);
+  process.exit(1);
+}

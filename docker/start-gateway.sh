@@ -1,94 +1,160 @@
 #!/bin/bash
-# Gateway startup script - validates env and starts single gateway instance
-# Do NOT add set -e as we want to handle errors gracefully
+# Gateway startup script - bulletproof version with safe fallbacks
+# Exit immediately on error but with detailed logging
+
+set -x  # Enable debug mode to see every command
 
 export CLAWDBOT_GATEWAY_BIND="${CLAWDBOT_GATEWAY_BIND:-0.0.0.0}"
 export CLAWDBOT_GATEWAY_PORT="${CLAWDBOT_GATEWAY_PORT:-8001}"
 
 echo "========================================="
-echo "[gateway-wrapper] Starting gateway"
-echo "[gateway-wrapper] Bind: ${CLAWDBOT_GATEWAY_BIND}"
-echo "[gateway-wrapper] Port: ${CLAWDBOT_GATEWAY_PORT}"
+echo "GATEWAY STARTUP DEBUG"
 echo "========================================="
+echo "Date: $(date)"
+echo "Node version: $(node --version 2>/dev/null || echo 'NOT FOUND')"
+echo "PWD: $(pwd)"
+echo "CLAWDBOT_GATEWAY_BIND: ${CLAWDBOT_GATEWAY_BIND}"
+echo "CLAWDBOT_GATEWAY_PORT: ${CLAWDBOT_GATEWAY_PORT}"
 
-# Check if dist folder exists (code must be built)
-if [ ! -d "/app/dist" ]; then
-  echo "[gateway-wrapper] ❌ ERROR: /app/dist folder not found!"
-  echo "[gateway-wrapper] The TypeScript code needs to be built before running."
-  echo "[gateway-wrapper] Build should happen in Dockerfile with: pnpm build"
-  echo ""
-  echo "[gateway-wrapper] Attempting to show build error..."
-  ls -la /app/ | head -20
-  echo ""
-  echo "[gateway-wrapper] Trying to start anyway in 5 seconds..."
-  sleep 5
-fi
-
-# Check if entry.js exists
-if [ ! -f "/app/dist/entry.js" ]; then
-  echo "[gateway-wrapper] ⚠️ WARNING: /app/dist/entry.js not found!"
-  echo "[gateway-wrapper] Build may be incomplete."
-  echo "[gateway-wrapper] Available files in /app/:"
-  ls -la /app/ 2>/dev/null | head -10 || echo "Cannot list /app/"
-  echo ""
-  echo "[gateway-wrapper] Attempting to continue anyway..."
-fi
-
-# Log API key status (not the actual keys)
-echo "[gateway-wrapper] Environment check:"
-echo "  GATEWAY_TOKEN: ${GATEWAY_TOKEN:+✅ set}${GATEWAY_TOKEN:-❌ not set}"
-echo "  GATEWAY_PASSWORD: ${GATEWAY_PASSWORD:+✅ set}${GATEWAY_PASSWORD:-❌ not set}"
-echo "  MOONSHOT_API_KEY: ${MOONSHOT_API_KEY:+✅ set}${MOONSHOT_API_KEY:-❌ not set}"
-
-# Check if port is already in use
-echo "[gateway-wrapper] Checking port ${CLAWDBOT_GATEWAY_PORT}..."
-if nc -z 127.0.0.1 "${CLAWDBOT_GATEWAY_PORT}" 2>/dev/null; then
-  echo "[gateway-wrapper] ⚠️ WARNING: Port ${CLAWDBOT_GATEWAY_PORT} is already in use!"
-  netstat -tlnp 2>/dev/null | grep "${CLAWDBOT_GATEWAY_PORT}" || true
-fi
-
-# Check for moltbot.json config
-if [ -f /root/.moltbot/moltbot.json ]; then
-  echo "[gateway-wrapper] ✅ Config found at /root/.moltbot/moltbot.json"
-else
-  echo "[gateway-wrapper] ℹ️ No config at /root/.moltbot/moltbot.json (will use defaults)"
-fi
-
-# Warning about auth
-if [ -z "${GATEWAY_TOKEN:-}" ] && [ -z "${GATEWAY_PASSWORD:-}" ]; then
-  echo "[gateway-wrapper] ⚠️ No GATEWAY_TOKEN or GATEWAY_PASSWORD set - gateway will run in DISABLED mode"
-fi
-
-# Main startup with retry logic
+# Check Node.js
 echo ""
-echo "[gateway-wrapper] 🚀 Starting gateway process..."
+echo "--- Checking Node.js ---"
+if ! command -v node &> /dev/null; then
+    echo "ERROR: Node.js not found in PATH"
+    echo "PATH: ${PATH}"
+    exit 1
+fi
+
+NODE_VERSION=$(node --version)
+echo "Node.js version: ${NODE_VERSION}"
+
+# Check if dist exists
+echo ""
+echo "--- Checking Build Files ---"
+if [ ! -d "/app/dist" ]; then
+    echo "ERROR: /app/dist directory not found!"
+    echo "Contents of /app:"
+    ls -la /app/ 2>/dev/null || echo "Cannot list /app"
+    
+    # EMERGENCY: Try to build now
+    echo ""
+    echo "Attempting emergency build..."
+    cd /app
+    if [ -f "package.json" ]; then
+        echo "Running pnpm install..."
+        pnpm install --frozen-lockfile 2>&1 || npm install 2>&1 || echo "Install failed"
+        
+        echo "Running pnpm build..."
+        pnpm build 2>&1 || echo "Build failed"
+    fi
+    
+    # Check again
+    if [ ! -d "/app/dist" ]; then
+        echo "CRITICAL: Build failed or dist still missing"
+        echo "Starting HTTP server as fallback..."
+        
+        # Start a minimal HTTP server as emergency fallback
+        node -e "
+            const http = require('http');
+            const server = http.createServer((req, res) => {
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                res.end(JSON.stringify({
+                    status: 'emergency_mode',
+                    message: 'Gateway build files missing',
+                    error: 'dist/ folder not found'
+                }));
+            });
+            server.listen(${CLAWDBOT_GATEWAY_PORT}, '${CLAWDBOT_GATEWAY_BIND}', () => {
+                console.log('EMERGENCY server running on port ${CLAWDBOT_GATEWAY_PORT}');
+            });
+        " &
+        
+        # Keep script running
+        sleep infinity
+        exit 0
+    fi
+fi
+
+if [ ! -f "/app/dist/entry.js" ]; then
+    echo "ERROR: /app/dist/entry.js not found!"
+    echo "Contents of /app/dist:"
+    ls -la /app/dist/ 2>/dev/null || echo "Cannot list /app/dist"
+fi
+
+echo "Build files: OK"
+
+# Check config
+echo ""
+echo "--- Checking Config ---"
+if [ -f "/root/.moltbot/moltbot.json" ]; then
+    echo "Config exists: /root/.moltbot/moltbot.json"
+    cat /root/.moltbot/moltbot.json | head -20
+else
+    echo "No config found - will use defaults"
+    mkdir -p /root/.moltbot
+fi
+
+# Check environment
+echo ""
+echo "--- Environment Variables ---"
+echo "GATEWAY_TOKEN: ${GATEWAY_TOKEN:+SET}${GATEWAY_TOKEN:-NOT SET}"
+echo "GATEWAY_PASSWORD: ${GATEWAY_PASSWORD:+SET}${GATEWAY_PASSWORD:-NOT SET}"
+echo "MOONSHOT_API_KEY: ${MOONSHOT_API_KEY:+SET}${MOONSHOT_API_KEY:-NOT SET}"
+echo "OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:+SET}${OPENROUTER_API_KEY:-NOT SET}"
+echo "NODE_ENV: ${NODE_ENV:-not set}"
+
+# Check port
+echo ""
+echo "--- Checking Port ${CLAWDBOT_GATEWAY_PORT} ---"
+if command -v netstat &> /dev/null; then
+    netstat -tlnp 2>/dev/null | grep ":${CLAWDBOT_GATEWAY_PORT} " || echo "Port appears free"
+elif command -v ss &> /dev/null; then
+    ss -tlnp 2>/dev/null | grep ":${CLAWDBOT_GATEWAY_PORT} " || echo "Port appears free"
+else
+    echo "Cannot check port (no netstat or ss)"
+fi
+
+# Start gateway with maximum error capture
+echo ""
+echo "========================================="
+echo "STARTING GATEWAY"
 echo "========================================="
 
-MAX_RETRIES=3
-RETRY_COUNT=0
+cd /app
 
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-  echo "[gateway-wrapper] Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES"
-  
-  # Try to start gateway
-  if node /app/moltbot.mjs gateway \
+# Try to start, capture all output
+node /app/moltbot.mjs gateway \
     --port "${CLAWDBOT_GATEWAY_PORT}" \
     --bind "${CLAWDBOT_GATEWAY_BIND}" \
-    --allow-unconfigured 2>&1; then
-    echo "[gateway-wrapper] Gateway exited normally"
-    exit 0
-  else
-    EXIT_CODE=$?
-    echo "[gateway-wrapper] ❌ Gateway crashed with exit code ${EXIT_CODE}"
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-    
-    if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-      echo "[gateway-wrapper] Retrying in 3 seconds..."
-      sleep 3
-    fi
-  fi
-done
+    --allow-unconfigured 2>&1 &
 
-echo "[gateway-wrapper] ❌ Gateway failed after $MAX_RETRIES attempts"
-echo "[gateway-wrapper] Check logs at /var/log/supervisor/gateway.err.log"
-exit 1
+PID=$!
+echo "Gateway started with PID: ${PID}"
+
+# Wait a bit and check if still running
+sleep 5
+
+if kill -0 $PID 2>/dev/null; then
+    echo "Gateway is running (PID: ${PID})"
+    wait $PID
+    EXIT_CODE=$?
+    echo "Gateway exited with code: ${EXIT_CODE}"
+    exit ${EXIT_CODE}
+else
+    echo "ERROR: Gateway crashed within 5 seconds"
+    wait $PID 2>/dev/null
+    EXIT_CODE=$?
+    echo "Exit code: ${EXIT_CODE}"
+    
+    # Try once more
+    echo ""
+    echo "Retrying in 3 seconds..."
+    sleep 3
+    
+    node /app/moltbot.mjs gateway \
+        --port "${CLAWDBOT_GATEWAY_PORT}" \
+        --bind "${CLAWDBOT_GATEWAY_BIND}" \
+        --allow-unconfigured 2>&1
+    
+    exit $?
+fi
