@@ -30,7 +30,7 @@ COPY scripts ./scripts
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN CLAWDBOT_A2UI_SKIP_MISSING=1 pnpm build
+RUN CLAWDBOT_A2UI_SKIP_MISSING=1 pnpm build || (echo "BUILD FAILED! Check errors above." && exit 1)
 ENV CLAWDBOT_PREFER_PNPM=1
 RUN pnpm ui:install
 RUN pnpm ui:build

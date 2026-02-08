@@ -9,6 +9,23 @@ echo "[gateway-wrapper] Starting gateway"
 echo "[gateway-wrapper] Bind: ${CLAWDBOT_GATEWAY_BIND}"
 echo "[gateway-wrapper] Port: ${CLAWDBOT_GATEWAY_PORT}"
 
+# Check if dist folder exists (code must be built)
+if [ ! -d "/app/dist" ]; then
+  echo "[gateway-wrapper] ERROR: /app/dist folder not found!"
+  echo "[gateway-wrapper] The TypeScript code needs to be built before running."
+  echo "[gateway-wrapper] Make sure 'pnpm build' runs successfully during Docker build."
+  exit 1
+fi
+
+# Check if entry.js exists
+if [ ! -f "/app/dist/entry.js" ]; then
+  echo "[gateway-wrapper] ERROR: /app/dist/entry.js not found!"
+  echo "[gateway-wrapper] Build may be incomplete or failed."
+  exit 1
+fi
+
+echo "[gateway-wrapper] Build check passed: dist/ folder exists"
+
 # Log API key status (not the actual keys)
 echo "[gateway-wrapper] GATEWAY_TOKEN: ${GATEWAY_TOKEN:+set}"
 echo "[gateway-wrapper] GATEWAY_PASSWORD: ${GATEWAY_PASSWORD:+set}"
