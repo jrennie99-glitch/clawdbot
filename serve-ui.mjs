@@ -338,10 +338,12 @@ wss.on("connection", (clientSocket, req) => {
     }
   });
 
-  gatewaySocket.on("error", () => {
+  gatewaySocket.on("error", (err) => {
+    console.error(`[WebSocket Proxy] Gateway connection error: ${err.message}`);
+    console.error(`[WebSocket Proxy] Trying to connect to: ${gatewayUrl}`);
     if (clientSocket.readyState === WebSocket.OPEN) {
       // Use 1001 (going away) instead of 1011 to avoid client-side errors
-      clientSocket.close(1001, "Gateway temporarily unavailable");
+      clientSocket.close(1001, "Gateway temporarily unavailable - check gateway logs");
     }
   });
 
@@ -372,4 +374,17 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`[SERVER] MoltBot UI server listening on port ${PORT}`);
   console.log(`[SERVER] Gateway proxy target: ws://127.0.0.1:${GATEWAY_PORT}`);
   console.log(`[SERVER] Token configured: ${!!GATEWAY_TOKEN}`);
+  
+  // Check if gateway is reachable
+  const http = require('http');
+  const checkGateway = () => {
+    const req = http.get(`http://127.0.0.1:${GATEWAY_PORT}/healthz`, (res) => {
+      console.log(`[SERVER] Gateway health check: ${res.statusCode === 200 ? 'OK' : 'UNHEALTHY'}`);
+    }).on('error', (err) => {
+      console.error(`[SERVER] Gateway NOT reachable at port ${GATEWAY_PORT}: ${err.message}`);
+      console.error(`[SERVER] Make sure gateway is running. Check supervisorctl status.`);
+    });
+    req.setTimeout(5000);
+  };
+  setTimeout(checkGateway, 2000);
 });
