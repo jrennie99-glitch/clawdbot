@@ -1,19 +1,19 @@
 // Defaults for agent metadata when upstream does not supply them.
-// Default to OpenRouter with top open-source models (no Claude required)
+// Default to Moonshot Kimi K2.5 (best open-source model with 256K context)
 // Users can override via env vars or moltbot.json.
 
-// Provider priority: openrouter -> groq -> ollama -> anthropic (fallback only)
-export const DEFAULT_PROVIDER = process.env.DEFAULT_LLM_PROVIDER?.trim() || "openrouter";
-export const DEFAULT_MODEL = process.env.DEFAULT_MODEL?.trim() || "deepseek/deepseek-r1";
+// Provider priority: moonshot (Kimi) -> openrouter -> groq -> ollama
+export const DEFAULT_PROVIDER = process.env.DEFAULT_LLM_PROVIDER?.trim() || "moonshot";
+export const DEFAULT_MODEL = process.env.DEFAULT_MODEL?.trim() || "kimi-k2.5";
 
 // Context window: Use conservative defaults for open models
 export const DEFAULT_CONTEXT_TOKENS = 65_000;
 
 // LLM request configuration (can be overridden via env vars)
 // CRITICAL: Hard timeouts to prevent hanging on any model
-export const DEFAULT_CONNECTION_TIMEOUT_MS = parseInt(process.env.LLM_CONNECTION_TIMEOUT_MS || "15000", 10); // 15s connection timeout (increased for open-source LLMs)
-export const DEFAULT_LLM_TIMEOUT_MS = parseInt(process.env.LLM_REQUEST_TIMEOUT_MS || "60000", 10); // 60s total request timeout (increased for reasoning models)
-export const DEFAULT_FIRST_TOKEN_TIMEOUT_MS = parseInt(process.env.LLM_FIRST_TOKEN_TIMEOUT_MS || "30000", 10); // 30s first token timeout (DeepSeek-R1 needs this)
+export const DEFAULT_CONNECTION_TIMEOUT_MS = parseInt(process.env.LLM_CONNECTION_TIMEOUT_MS || "30000", 10); // 30s connection timeout
+export const DEFAULT_LLM_TIMEOUT_MS = parseInt(process.env.LLM_REQUEST_TIMEOUT_MS || "120000", 10); // 120s total request timeout (Kimi can be slow)
+export const DEFAULT_FIRST_TOKEN_TIMEOUT_MS = parseInt(process.env.LLM_FIRST_TOKEN_TIMEOUT_MS || "60000", 10); // 60s first token timeout
 export const DEFAULT_LLM_MAX_RETRIES = parseInt(process.env.LLM_MAX_RETRIES || "1", 10); // 1 retry per model
 export const DEFAULT_LLM_STREAMING = process.env.LLM_STREAMING !== "true"; // false by default - STREAMING DISABLED
 
