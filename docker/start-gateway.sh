@@ -1,160 +1,69 @@
 #!/bin/bash
-# Gateway startup script - bulletproof version with safe fallbacks
-# Exit immediately on error but with detailed logging
-
-set -x  # Enable debug mode to see every command
+# Gateway startup with emergency fallback
 
 export CLAWDBOT_GATEWAY_BIND="${CLAWDBOT_GATEWAY_BIND:-0.0.0.0}"
 export CLAWDBOT_GATEWAY_PORT="${CLAWDBOT_GATEWAY_PORT:-8001}"
 
-echo "========================================="
-echo "GATEWAY STARTUP DEBUG"
-echo "========================================="
-echo "Date: $(date)"
-echo "Node version: $(node --version 2>/dev/null || echo 'NOT FOUND')"
-echo "PWD: $(pwd)"
-echo "CLAWDBOT_GATEWAY_BIND: ${CLAWDBOT_GATEWAY_BIND}"
-echo "CLAWDBOT_GATEWAY_PORT: ${CLAWDBOT_GATEWAY_PORT}"
+# Always print to stdout (goes to supervisor logs)
+exec 1>&1
+exec 2>&1
 
-# Check Node.js
-echo ""
-echo "--- Checking Node.js ---"
+echo "=========================================="
+echo "[$(date)] GATEWAY STARTUP"
+echo "=========================================="
+
+# Check basic requirements
+echo "Checking Node.js..."
 if ! command -v node &> /dev/null; then
-    echo "ERROR: Node.js not found in PATH"
-    echo "PATH: ${PATH}"
-    exit 1
+    echo "ERROR: Node.js not found!"
+    echo "Starting emergency gateway..."
+    exec node /app/docker/emergency-gateway.js
 fi
 
 NODE_VERSION=$(node --version)
-echo "Node.js version: ${NODE_VERSION}"
+echo "Node.js: ${NODE_VERSION}"
 
 # Check if dist exists
-echo ""
-echo "--- Checking Build Files ---"
-if [ ! -d "/app/dist" ]; then
-    echo "ERROR: /app/dist directory not found!"
-    echo "Contents of /app:"
-    ls -la /app/ 2>/dev/null || echo "Cannot list /app"
-    
-    # EMERGENCY: Try to build now
-    echo ""
-    echo "Attempting emergency build..."
-    cd /app
-    if [ -f "package.json" ]; then
-        echo "Running pnpm install..."
-        pnpm install --frozen-lockfile 2>&1 || npm install 2>&1 || echo "Install failed"
-        
-        echo "Running pnpm build..."
-        pnpm build 2>&1 || echo "Build failed"
-    fi
-    
-    # Check again
-    if [ ! -d "/app/dist" ]; then
-        echo "CRITICAL: Build failed or dist still missing"
-        echo "Starting HTTP server as fallback..."
-        
-        # Start a minimal HTTP server as emergency fallback
-        node -e "
-            const http = require('http');
-            const server = http.createServer((req, res) => {
-                res.writeHead(200, {'Content-Type': 'application/json'});
-                res.end(JSON.stringify({
-                    status: 'emergency_mode',
-                    message: 'Gateway build files missing',
-                    error: 'dist/ folder not found'
-                }));
-            });
-            server.listen(${CLAWDBOT_GATEWAY_PORT}, '${CLAWDBOT_GATEWAY_BIND}', () => {
-                console.log('EMERGENCY server running on port ${CLAWDBOT_GATEWAY_PORT}');
-            });
-        " &
-        
-        # Keep script running
-        sleep infinity
-        exit 0
-    fi
-fi
-
+echo "Checking build files..."
 if [ ! -f "/app/dist/entry.js" ]; then
     echo "ERROR: /app/dist/entry.js not found!"
-    echo "Contents of /app/dist:"
-    ls -la /app/dist/ 2>/dev/null || echo "Cannot list /app/dist"
+    echo "Build is incomplete!"
+    echo "Starting emergency gateway..."
+    exec node /app/docker/emergency-gateway.js
 fi
 
 echo "Build files: OK"
 
-# Check config
-echo ""
-echo "--- Checking Config ---"
-if [ -f "/root/.moltbot/moltbot.json" ]; then
-    echo "Config exists: /root/.moltbot/moltbot.json"
-    cat /root/.moltbot/moltbot.json | head -20
-else
-    echo "No config found - will use defaults"
-    mkdir -p /root/.moltbot
-fi
+# Try to start main gateway with timeout
+echo "Starting main gateway..."
+echo "Command: node /app/moltbot.mjs gateway --port ${CLAWDBOT_GATEWAY_PORT} --bind ${CLAWDBOT_GATEWAY_BIND} --allow-unconfigured"
 
-# Check environment
-echo ""
-echo "--- Environment Variables ---"
-echo "GATEWAY_TOKEN: ${GATEWAY_TOKEN:+SET}${GATEWAY_TOKEN:-NOT SET}"
-echo "GATEWAY_PASSWORD: ${GATEWAY_PASSWORD:+SET}${GATEWAY_PASSWORD:-NOT SET}"
-echo "MOONSHOT_API_KEY: ${MOONSHOT_API_KEY:+SET}${MOONSHOT_API_KEY:-NOT SET}"
-echo "OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:+SET}${OPENROUTER_API_KEY:-NOT SET}"
-echo "NODE_ENV: ${NODE_ENV:-not set}"
-
-# Check port
-echo ""
-echo "--- Checking Port ${CLAWDBOT_GATEWAY_PORT} ---"
-if command -v netstat &> /dev/null; then
-    netstat -tlnp 2>/dev/null | grep ":${CLAWDBOT_GATEWAY_PORT} " || echo "Port appears free"
-elif command -v ss &> /dev/null; then
-    ss -tlnp 2>/dev/null | grep ":${CLAWDBOT_GATEWAY_PORT} " || echo "Port appears free"
-else
-    echo "Cannot check port (no netstat or ss)"
-fi
-
-# Start gateway with maximum error capture
-echo ""
-echo "========================================="
-echo "STARTING GATEWAY"
-echo "========================================="
-
-cd /app
-
-# Try to start, capture all output
-node /app/moltbot.mjs gateway \
+# Start with timeout - if it crashes within 10 seconds, use emergency
+timeout 10s node /app/moltbot.mjs gateway \
     --port "${CLAWDBOT_GATEWAY_PORT}" \
     --bind "${CLAWDBOT_GATEWAY_BIND}" \
     --allow-unconfigured 2>&1 &
 
-PID=$!
-echo "Gateway started with PID: ${PID}"
+MAIN_PID=$!
+echo "Main gateway PID: ${MAIN_PID}"
 
-# Wait a bit and check if still running
+# Wait and check
 sleep 5
-
-if kill -0 $PID 2>/dev/null; then
-    echo "Gateway is running (PID: ${PID})"
-    wait $PID
+if kill -0 $MAIN_PID 2>/dev/null; then
+    echo "Main gateway is running!"
+    wait $MAIN_PID
     EXIT_CODE=$?
-    echo "Gateway exited with code: ${EXIT_CODE}"
-    exit ${EXIT_CODE}
+    echo "Main gateway exited: ${EXIT_CODE}"
+    
+    # If it exited with error, try emergency
+    if [ $EXIT_CODE -ne 0 ]; then
+        echo "Main gateway crashed. Starting emergency gateway..."
+        exec node /app/docker/emergency-gateway.js
+    fi
+    exit $EXIT_CODE
 else
-    echo "ERROR: Gateway crashed within 5 seconds"
-    wait $PID 2>/dev/null
-    EXIT_CODE=$?
-    echo "Exit code: ${EXIT_CODE}"
-    
-    # Try once more
-    echo ""
-    echo "Retrying in 3 seconds..."
-    sleep 3
-    
-    node /app/moltbot.mjs gateway \
-        --port "${CLAWDBOT_GATEWAY_PORT}" \
-        --bind "${CLAWDBOT_GATEWAY_BIND}" \
-        --allow-unconfigured 2>&1
-    
-    exit $?
+    echo "Main gateway crashed immediately!"
+    wait $MAIN_PID 2>/dev/null
+    echo "Starting emergency gateway..."
+    exec node /app/docker/emergency-gateway.js
 fi
