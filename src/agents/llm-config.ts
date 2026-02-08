@@ -78,9 +78,12 @@ export function getProviderBaseUrl(provider: string): string | undefined {
     case "groq":
       return process.env.OPENAI_BASE_URL?.trim() || GROQ_BASE_URL;
     case "openrouter":
-      return process.env.OPENAI_BASE_URL?.trim() || OPENROUTER_BASE_URL;
+      return process.env.OPENROUTER_BASE_URL?.trim() || OPENROUTER_BASE_URL;
     case "ollama":
       return process.env.OLLAMA_BASE_URL?.trim() || OLLAMA_DEFAULT_BASE_URL;
+    case "moonshot":
+    case "kimi":
+      return process.env.MOONSHOT_BASE_URL?.trim() || "https://api.moonshot.cn/v1";
     default:
       return process.env.OPENAI_BASE_URL?.trim() || undefined;
   }
