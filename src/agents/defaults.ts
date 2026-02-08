@@ -1,10 +1,10 @@
 // Defaults for agent metadata when upstream does not supply them.
-// Default to OpenRouter with top open-source models (no Claude required)
+// Default to Moonshot Kimi K2.5 (best open-source model with 256K context)
 // Users can override via env vars or moltbot.json.
 
-// Provider priority: openrouter -> groq -> ollama -> anthropic (fallback only)
-export const DEFAULT_PROVIDER = process.env.DEFAULT_LLM_PROVIDER?.trim() || "openrouter";
-export const DEFAULT_MODEL = process.env.DEFAULT_MODEL?.trim() || "deepseek/deepseek-r1";
+// Provider priority: moonshot (Kimi) -> openrouter -> groq -> ollama
+export const DEFAULT_PROVIDER = process.env.DEFAULT_LLM_PROVIDER?.trim() || "moonshot";
+export const DEFAULT_MODEL = process.env.DEFAULT_MODEL?.trim() || "kimi-k2.5";
 
 // Context window: Use conservative defaults for open models
 export const DEFAULT_CONTEXT_TOKENS = 65_000;
